@@ -3,7 +3,9 @@ void nexButtons_INIT(){
 //  to_sleep.attachPop(to_sleepPopCallback, &to_sleep);
 //  t1.attachPop(t1PopCallback, &t1);
 
+    setTime.attachPop(setTimePopCallback, &setTime);  // Page 3
 
+    
     bMS1.attachPop(bMS1PopCallback, &bMS1);       // Page 4
     bMS2.attachPop(bMS2PopCallback, &bMS2);
     bMS3.attachPop(bMS3PopCallback, &bMS3);
@@ -46,9 +48,5 @@ void nexButtons_INIT(){
   
   // Update voltage thr
   int thr = e_voltageThr*10;
-  Serial2.print("settings_2.v_err.val=");
-  Serial2.print(thr);  
-  Serial2.write(0xff);
-  Serial2.write(0xff);
-  Serial2.write(0xff);
+  nextion_update("settings_2.v_err.val=", thr);
 }

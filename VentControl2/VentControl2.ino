@@ -150,6 +150,12 @@ void nextion_update(String object, String message);
 // Sleep page
 //	NexButton t1 = NexButton(13,2,"t1");
 
+
+// Set Time
+
+    NexButton setTime = nexButton(3,17,"setTime");
+
+
 //  MANUAL MOTOR 1 - Page 4
 
     NexButton bMS1 = NexButton(4,1,"bMS1");                 // Button 1
@@ -210,6 +216,10 @@ NexTouch *nex_listen_list[] = {
    // Page 1
 
    // Page 2
+
+   // Page 3
+
+      &setTime,
   
    // Manual Page 4
       &bMS1,
@@ -276,6 +286,18 @@ NexTouch *nex_listen_list[] = {
 		sendToNextion=1;
 	}
 */	
+
+  void setTimePopCallback(void *ptr){
+    /**
+     * TODO:
+     * Get the values that are set on the display and update RTC.
+     */
+     
+  }
+
+
+
+
 // ************MANUAL - page 4 **************
 
 	// 1-button release function
@@ -412,17 +434,12 @@ NexTouch *nex_listen_list[] = {
 		void v_errDecPopCallback(void *ptr){
 			e_voltageThr -= 0.1;
 			int thr = e_voltageThr*10;
-			Serial2.print("settings_2.v_err.val=");
-			Serial2.print(thr);  
-			Serial2.write(0xff);
-			Serial2.write(0xff);
-			Serial2.write(0xff);
+      nextion_update("settings_2.v_err.val=", thr);
 		}
 		
 		void v_errIncPopCallback(void *ptr){
 			e_voltageThr += 0.1;
 			int thr = e_voltageThr*10;
-			
       nextion_update("settings_2.v_err.val=", thr);
 		}
 
@@ -436,11 +453,12 @@ void setup() {
 	pinMode(Motor2, OUTPUT);           // set motor as output
 	sensorRead();
 	SD_Card_INIT();
+ 
 } // END OF SETUP
 
 
 
-//##############################################      MAIN         ############################################################
+//##############################################      MAIN       ############################################################
 void loop() {
   /**
    * TODO
