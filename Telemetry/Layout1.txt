@@ -1,0 +1,154 @@
+Telemetry Viewer File Format v0.6
+
+GUI Settings:
+
+	tile column count = 6
+	tile row count = 6
+	show plot tooltips = true
+	smooth scrolling = false
+	opengl antialiasing = true
+	show fps and period = false
+	chart index for benchmarks = -1
+
+Communication Settings:
+
+	port = UART: COM7
+	uart baud rate = 9600
+	tcp/udp port number = 8080
+	packet type = CSV
+	sample rate = 500
+
+9 Data Structure Locations:
+
+	location = 0
+	processor index = -1
+	name = Outside
+	color = 0x3333FF
+	unit = °C
+	conversion factor a = 1.0
+	conversion factor b = 1.0
+
+	location = 1
+	processor index = -1
+	name = Panel
+	color = 0xFF00FF
+	unit = °C
+	conversion factor a = 1.0
+	conversion factor b = 1.0
+
+	location = 2
+	processor index = -1
+	name = Air
+	color = 0xFF0033
+	unit = °C
+	conversion factor a = 1.0
+	conversion factor b = 1.0
+
+	location = 3
+	processor index = -1
+	name = Room
+	color = 0x00FFFF
+	unit = °C
+	conversion factor a = 1.0
+	conversion factor b = 1.0
+
+	location = 4
+	processor index = -1
+	name = Voltage
+	color = 0x33FF33
+	unit = V
+	conversion factor a = 1.0
+	conversion factor b = 1.0
+
+	location = 5
+	processor index = -1
+	name = Current
+	color = 0xFF0033
+	unit = A
+	conversion factor a = 1.0
+	conversion factor b = 1.0
+
+	location = 6
+	processor index = -1
+	name = filteredSignal
+	color = 0xFFFF00
+	unit = 
+	conversion factor a = 1.0
+	conversion factor b = 1.0
+
+	location = 7
+	processor index = -1
+	name = tDelta
+	color = 0x00CC33
+	unit = °C
+	conversion factor a = 1.0
+	conversion factor b = 1.0
+
+	location = 8
+	processor index = -1
+	name = Motor 1 speed
+	color = 0xFF0033
+	unit = 
+	conversion factor a = 1.0
+	conversion factor b = 1.0
+
+Checksum:
+
+	location = -1
+	checksum processor index = -1
+
+3 Charts:
+
+	chart type = Time Domain Chart
+	top left x = 0
+	top left y = 2
+	bottom right x = 5
+	bottom right y = 3
+	datasets = 6
+	duration type = Samples
+	duration = 1000
+	autoscale y-axis minimum = true
+	manual y-axis minimum = -1.0
+	autoscale y-axis maximum = true
+	manual y-axis maximum = 1.0
+	show x-axis title = false
+	show x-axis scale = false
+	show y-axis title = true
+	show y-axis scale = true
+	show legend = true
+
+	chart type = Time Domain Chart
+	top left x = 0
+	top left y = 4
+	bottom right x = 5
+	bottom right y = 5
+	datasets = 4
+	duration type = Samples
+	duration = 1000
+	autoscale y-axis minimum = true
+	manual y-axis minimum = -1.0
+	autoscale y-axis maximum = true
+	manual y-axis maximum = 1.0
+	show x-axis title = false
+	show x-axis scale = false
+	show y-axis title = true
+	show y-axis scale = true
+	show legend = true
+
+	chart type = Time Domain Chart
+	top left x = 0
+	top left y = 0
+	bottom right x = 5
+	bottom right y = 1
+	datasets = 0,1,2,3
+	duration type = Samples
+	duration = 1000
+	autoscale y-axis minimum = true
+	manual y-axis minimum = -1.0
+	autoscale y-axis maximum = true
+	manual y-axis maximum = 1.0
+	show x-axis title = false
+	show x-axis scale = false
+	show y-axis title = true
+	show y-axis scale = true
+	show legend = true
