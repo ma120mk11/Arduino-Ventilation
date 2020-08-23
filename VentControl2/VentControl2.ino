@@ -51,11 +51,11 @@ int M1Speed = 0;             	// motor1 Speed (0-5)
 int M2Speed = 0;             	// motor2 Speed (0-5)
 bool m1Running = 0;				    // motor 1 state
 
-float temp0C;					// TempSensor0 value in degrees
-float temp1C;					// TempSensor1 value in degrees
-float temp2C;					// TempSensor2 value in degrees
-float temp3C;					// TempSensor3
-float temp4C = 5.4;				// TempSensor4
+float temp0C;					  // TempSensor0 value in degrees
+float temp1C;					  // TempSensor1 value in degrees
+float temp2C;					  // TempSensor2 value in degrees
+float temp3C;					  // TempSensor3
+float temp4C = 5.4;		  // TempSensor4
 float voltage;
 
 float v0_1 = 0;
@@ -109,7 +109,7 @@ void m2SetSpeed(int s);
 void sensorRead();
 void sensorCheck();
 void heating();
-void sysValUpdate();			// Updates sensor values on NEXTION
+void sysValUpdate();			                          // Updates sensor values on NEXTION
 void sensor_maxReset();
 void NEXsensor_maxUpdate();
 void NEXtempThrUpdate();
@@ -422,11 +422,8 @@ NexTouch *nex_listen_list[] = {
 		void v_errIncPopCallback(void *ptr){
 			e_voltageThr += 0.1;
 			int thr = e_voltageThr*10;
-			Serial2.print("settings_2.v_err.val=");
-			Serial2.print(thr);  
-			Serial2.write(0xff);
-			Serial2.write(0xff);
-			Serial2.write(0xff);
+			
+      nextion_update("settings_2.v_err.val=", thr);
 		}
 
 //**********************************************   SETUP     ********************************************//

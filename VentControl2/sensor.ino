@@ -2,8 +2,8 @@
 void sensorRead(){
 //**** SETTINGS*********
 
-int smoothing = 10; 		// Sensor smoothing: number of times to read sensor value. 1 = no smoothing
-int sDLY = 20;				// Smoothing delay
+int smoothing = 10; 		  // Sensor smoothing: number of times to read sensor value. 1 = no smoothing
+int sDLY = 20;				    // Smoothing delay
 const int mVperAmp = 10;	// 20A module
 
 //**** VARIABLES *******
@@ -241,5 +241,3 @@ void sensor_maxReset(){
 	voltage_max = voltage;
 	current_max = current;
 }
-
-
