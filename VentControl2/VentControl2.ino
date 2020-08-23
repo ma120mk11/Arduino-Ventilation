@@ -19,9 +19,9 @@ const int VoltageSensor = A8;  	// Voltage sensor pin
 
 
 // See SD_Card.ino for more info:
-const int chipSelect = 53;		// Pin for SD card
+const int chipSelect = 53;		  // Pin for SD card
 
-File myFile;					// For SD Card logging
+File myFile;					          // For SD Card logging
 
 //*********************** SETTINGS ***************************
 bool enableSerialPrint = 1;		// Turn on/off printing sensor values to serial 1
