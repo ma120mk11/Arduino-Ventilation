@@ -1,3 +1,55 @@
+#include <Arduino.h>
+#include "Nextion.h"
+
+extern int M1PWM;           
+extern int M2PWM;               
+extern int M1Speed;             
+extern int M2Speed;           
+extern bool m1Running, sendToNextion;
+
+extern float temp0C;					  
+extern float temp1C;					
+extern float temp2C;					 
+extern float temp3C;					
+extern float temp4C;		  	
+extern float voltage;
+
+extern float v0_1;
+extern float v0_2;
+
+extern float current;			
+
+extern float i0_1;
+extern float i0_2;				
+
+extern float filteredSignal;
+
+extern float temp0C_max;		
+extern float temp1C_max;			
+extern float temp2C_max;			
+extern float temp3C_max;			
+extern float temp4C_max;
+extern float voltage_min;			
+extern float voltage_max;
+extern float current_max;
+extern float tempDelta_max;
+
+extern float tempDelta;			
+
+extern int nextionPage;			
+extern int nextionMode;				
+
+extern int voltageErrorCount;	
+extern bool errorPending;
+
+extern int nexUpload;
+
+
+extern int tempUpper, tempLower;
+
+
+
+
 void nextion_goToPage(String page){
     Serial2.print("page ");
     Serial2.print(page);
@@ -33,8 +85,8 @@ void sysValUpdate(){
 		return;
 	}
 	// Current motor speeds
-  nextion_update("data.M1.val=", M1Speed);
-  nextion_update("data.M2.val", M2Speed);
+  	nextion_update("data.M1.val=", M1Speed);
+  	nextion_update("data.M2.val", M2Speed);
 
 	// Sensor data:
 	int t0 = temp0C*10.0;
@@ -46,7 +98,7 @@ void sysValUpdate(){
 	
 	int tDelta = tempDelta*10.0;
 	
-  nextion_update("data.M1.val=", M1Speed);
+  	nextion_update("data.M1.val=", M1Speed);
 	nextion_update("data.M2.val=", M2Speed);
 	nextion_update("data.T0.val=", t0);
 	nextion_update("data.T1.val=", t1);
@@ -86,7 +138,7 @@ void NEXtempThrUpdate(){
 	nextion_update("spring_sett1.n1.val=", tempLower);
 }
 
-String SD_Card_Error(String message){
+void SD_Card_Error(String message){
 	nextion_update("SD_CARD_error.message.txt=", message);	
 	nextion_goToPage("page SD_CARD_error");
 }

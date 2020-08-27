@@ -1,6 +1,21 @@
+#include <Arduino.h>
+#include "motor_speed.h"
+#include "sensor.h"
+#include "Nextion.h"
+
+// Global variables
+
+extern float voltage;
+extern float e_voltageThr;
+extern bool enableHeating;
+extern int voltageErrorCount;
+extern bool errorPending;
+
+extern NexTouch *nex_listen_list[];
+
 void sensorCheck(){
-// '********************** VOLTAGE CHECK ****************************************
-// If voltage is under threshold, wait 20 min.
+	// '********************** VOLTAGE CHECK ****************************************
+	// If voltage is under threshold, wait 20 min.
 	if (voltage < e_voltageThr){
 		
 		// Wait and check again

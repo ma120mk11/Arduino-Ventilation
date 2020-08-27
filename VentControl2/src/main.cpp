@@ -1,14 +1,20 @@
+#include <Arduino.h>
 #include "Nextion.h"
+#include "nextionDisp.h"
+#include "SD_Card.h"
+#include "sensor.h"
+#include "motor_speed.h"
+#include "heating.h"
+#include "settings.h"
 #include <SPI.h>
 #include <SD.h>
 
 // USE TX2 for Nextion display communication
 
 //*********************** PINS ******************************
-const int Motor1 = 9;          	// motor1 pin HEATED AIR
-const int Motor2 = 10;         	// motor2 pin DIRECT AIR
 
-const int TempSensor0 = A4;		  // LM35 temp sensor0 		OUTSIDE TEMP
+/*
+const int TempSensor0 = A4;		// LM35 temp sensor0 		OUTSIDE TEMP
 const int TempSensor1 = A1;   	// LM35 temp sensor1 pin  	PANEL TEMP
 const int TempSensor2 = A2;   	// LM35 temp sensor2 pin	HOT AIR
 const int TempSensor3 = A3;   	// LM35 temp sensor3 pin	LIVING ROOM
@@ -16,26 +22,26 @@ const int TempSensor4 = A5;   	// LM35 temp sensor4 pin
 
 const int CurrentSensor = A7;  	// Current sensor pin
 const int VoltageSensor = A8;  	// Voltage sensor pin
-
+*/
 
 // See SD_Card.ino for more info:
-const int chipSelect = 53;		  // Pin for SD card
+//const int chipSelect = 53;		// Pin for SD card
 
-File myFile;					          // For SD Card logging
+
 
 //*********************** SETTINGS ***************************
 bool enableSerialPrint = 1;		// Turn on/off printing sensor values to serial 1
-bool sendToNextion 	= 1;		  // Turn on/off sending sensor values to nextion (serial 2)
-bool allow2motors 	= 0;		  // Nextion setting, set default value here
-bool enableHeating 	= 0;		  // Enable AUTO setting for motor 1
-bool enableMotorStep = 0;		  // In auto mode, on -> use motor speeds 0,3,4,5. Off -> on/off
+bool sendToNextion 	= 1;		// Turn on/off sending sensor values to nextion (serial 2)
+bool allow2motors 	= 0;		// Nextion setting, set default value here
+bool enableHeating 	= 0;		// Enable AUTO setting for motor 1
+bool enableMotorStep = 0;		// In auto mode, on -> use motor speeds 0,3,4,5. Off -> on/off
 
-float pinReference = 5;			  // 
+float pinReference = 5;			// 
 
-int tempUpper = 40;				    // At which temperature to start motor
-int tempLower = 30;				    // At which temp to stop motor
+int tempUpper = 40;				// At which temperature to start motor
+int tempLower = 30;				// At which temp to stop motor
 
-int autoCyckle = 20;			    // Number of times to read value over threshold before action
+int autoCyckle = 20;			// Number of times to read value over threshold before action
 
 //********************** ERROR SETTINGS ***************************
 float e_voltageThr = 10.7;    // If voltage goes under this value, send error message
@@ -49,13 +55,13 @@ int M1PWM = 0;            		// motor1 PWM speed (0-255)
 int M2PWM = 0;               	// motor2 PWM speed (0-255)
 int M1Speed = 0;             	// motor1 Speed (0-5)
 int M2Speed = 0;             	// motor2 Speed (0-5)
-bool m1Running = 0;				    // motor 1 state
+bool m1Running = 0;				// motor 1 state
 
-float temp0C;					  // TempSensor0 value in degrees
-float temp1C;					  // TempSensor1 value in degrees
-float temp2C;					  // TempSensor2 value in degrees
-float temp3C;					  // TempSensor3
-float temp4C = 5.4;		  // TempSensor4
+float temp0C;					// TempSensor0 value in degrees
+float temp1C;					// TempSensor1 value in degrees
+float temp2C;					// TempSensor2 value in degrees
+float temp3C;					// TempSensor3
+float temp4C = 5.4;		  		// TempSensor4
 float voltage;
 
 float v0_1 = 0;
@@ -66,7 +72,7 @@ float current;					// Voltage sensor current reading
 float i0_1 = 0;					// last value
 float i0_2 = 0;					// second last value
 
-float filteredSignal =0;		// For debugging and comparison
+float filteredSignal = 0;		// For debugging and comparison
 
 float temp0C_max = 0;			// Sensor top value
 float temp1C_max = 0;			
@@ -102,6 +108,7 @@ float currentOffset = 0;
 
 //*********************** FUNCTIONS  *******************************
 
+/*
 void SD_Card_INIT();
 void nexButtons_INIT();
 void m1SetSpeed(int s);
@@ -120,6 +127,7 @@ void nextion_update(String object, float value);    // sends message to nextion
 void nextion_update(String object, int value);
 void nextion_goToPage(String page);
 void nextion_update(String object, String message);
+*/
 
 //#########################         NEXTION               #############################
 
@@ -153,7 +161,7 @@ void nextion_update(String object, String message);
 
 // Set Time
 
-    NexButton setTime = nexButton(3,17,"setTime");
+    NexButton setTime = NexButton(3,17,"setTime");
 
 
 //  MANUAL MOTOR 1 - Page 4
@@ -164,7 +172,7 @@ void nextion_update(String object, String message);
     NexButton bMS4 = NexButton(4,4,"bMS4");                 // Button 4
     NexButton bMS5 = NexButton(4,5,"bMS5");                 // Button 5
     NexButton bMS0 = NexButton(4,6,"bMS0");                 // Button OFF
-	  NexButton bM2  = NexButton(4,12,"bM2");				  	// Change to motor 2 (page 5)
+	NexButton bM2  = NexButton(4,12,"bM2");				  	// Change to motor 2 (page 5)
 
 //  MANUAL MOTOR 2 - Page 5
 
@@ -174,7 +182,7 @@ void nextion_update(String object, String message);
     NexButton bM2S4 = NexButton(5,4,"bM2S4");           // Button 4
     NexButton bM2S5 = NexButton(5,5,"bM2S5");           // Button 5
     NexButton bM2S0 = NexButton(5,6,"bM2S0");           // Button OFF
-	  NexButton bM1	= NexButton(5,11,"bM1");			// Change to motor 1 (page 4)
+	NexButton bM1	= NexButton(5,11,"bM1");			// Change to motor 1 (page 4)
 
 // Spring Heating MODE
 	NexButton springExit = NexButton(6,1,"springExit");		// Exit spring mode
@@ -205,6 +213,7 @@ void nextion_update(String object, String message);
 
 	NexButton v_errDec = NexButton(15,3,"v_errDec");
 	NexButton v_errInc = NexButton(15,4,"v_errInc");
+
 
 // ************* Register button objects to the touch event list. *****************
 NexTouch *nex_listen_list[] = {
@@ -302,8 +311,8 @@ NexTouch *nex_listen_list[] = {
 
 	// 1-button release function
 		void bMS1PopCallback(void *ptr){
-		  m1SetSpeed(1);                		// Sets motor speed
-		  dbSerialPrintln("Page4-Button-1");
+			m1SetSpeed(1);                		// Sets motor speed
+			dbSerialPrintln("Page4-Button-1");
 		}
 		
 	// 2-button release function
@@ -367,8 +376,7 @@ NexTouch *nex_listen_list[] = {
 		}
 	// OFF-button release function
 		void bM2S0PopCallback(void *ptr){
-		m2SetSpeed(0); 
-
+			m2SetSpeed(0); 
 		}
 	// Motor 1 button
 		void bM1PopCallback(void *ptr){		// When switching page, check if both can be on at the same time, if not -> off
@@ -445,15 +453,69 @@ NexTouch *nex_listen_list[] = {
 
 //**********************************************   SETUP     ********************************************//
 void setup() {													
-  //analogReference(INTERNAL2V56);		// ADC Voltage reference, pinReference in settings should be the same
+  	//analogReference(INTERNAL2V56);		// ADC Voltage reference, pinReference in settings should be the same
 	Serial.begin(9600);
 	nexInit();
-  nexButtons_INIT();                 // attach pop callback
+  	//nexButtons_INIT();                 // attach pop callback
 	pinMode(Motor1, OUTPUT);           // set motor as output
 	pinMode(Motor2, OUTPUT);           // set motor as output
 	sensorRead();
 	SD_Card_INIT();
  
+	//void nexButtons_INIT(){
+
+	springHeat.attachPop(springHeatPopCallback, &springHeat); // MENU
+	//  to_sleep.attachPop(to_sleepPopCallback, &to_sleep);
+	//  t1.attachPop(t1PopCallback, &t1);
+
+	setTime.attachPop(setTimePopCallback, &setTime);  // Page 3
+
+	
+	bMS1.attachPop(bMS1PopCallback, &bMS1);       // Page 4
+	bMS2.attachPop(bMS2PopCallback, &bMS2);
+	bMS3.attachPop(bMS3PopCallback, &bMS3);
+	bMS4.attachPop(bMS4PopCallback, &bMS4);
+	bMS5.attachPop(bMS5PopCallback, &bMS5);
+	bMS0.attachPop(bMS0PopCallback, &bMS0);
+	bM2.attachPop(bM2PopCallback, &bM2);
+	
+	bM2S1.attachPop(bM2S1PopCallback, &bM2S1);      // Page 5
+	bM2S2.attachPop(bM2S2PopCallback, &bM2S2);
+	bM2S3.attachPop(bM2S3PopCallback, &bM2S3);
+	bM2S4.attachPop(bM2S4PopCallback, &bM2S4);
+	bM2S5.attachPop(bM2S5PopCallback, &bM2S5);
+	bM2S0.attachPop(bM2S0PopCallback, &bM2S0);
+	bM1.attachPop(bM1PopCallback, &bM1);
+	
+	springExit.attachPop(springExitPopCallback, &springExit);   // PAGE 6 SPRING
+	
+	
+	Dec_Utemp.attachPop(Dec_UtempPopCallback, &Dec_Utemp);
+	Inc_Utemp.attachPop(Inc_UtempPopCallback, &Inc_Utemp);
+	Dec_Ltemp.attachPop(Dec_LtempPopCallback, &Dec_Ltemp);
+	Inc_Ltemp.attachPop(Inc_LtempPopCallback, &Inc_Ltemp);
+	
+	Measure.attachPop(MeasurePopCallback, &Measure);
+	Reset.attachPop(ResetPopCallback, &Reset);
+	Update.attachPop(UpdatePopCallback, &Update);
+	
+	v_err_exit.attachPop(v_err_exitPopCallback, & v_err_exit);
+	ignore.attachPop(ignorePopCallback, &ignore);
+	
+	v_errDec.attachPop(v_errDecPopCallback, &v_errDec);     // page 15 - settings 2
+	v_errInc.attachPop(v_errIncPopCallback, &v_errInc);
+
+
+	// *** Update NEXTION start values ***
+	sensorRead();               // We need to read values first
+	NEXtempThrUpdate();
+	NEXsensor_maxUpdate();
+	
+	// Update voltage thr
+	int thr = e_voltageThr*10;
+	nextion_update("settings_2.v_err.val=", thr);
+
+
 } // END OF SETUP
 
 
@@ -461,12 +523,12 @@ void setup() {
 //##############################################      MAIN       ############################################################
 void loop() {
   /**
-   * TODO
+   * TODO:
    * - Periodically run the motor for a specified time automatically. 
    * - Send a "ok" package to display every minute. If display doesn't get the "ok" message, display error message
    * - Set display time once a day. To prevent drifts.
    * 
-   */
+	*/
    
 	nexLoop(nex_listen_list);
 	sensorRead();

@@ -1,3 +1,10 @@
+#include <Arduino.h>
+#include <SD.h>
+//#include <SPI.h>
+#include "nextionDisp.h"
+#include "settings.h"
+
+
 /*
 https://lastminuteengineers.com/arduino-micro-sd-card-module-tutorial/
 
@@ -5,8 +12,20 @@ Pinout:			MOSI	MISO	SCK		CS
 Arduino Mega	51		50		52		53
 Arduino Uno		11		12		13		10
 Arduino Nano	11		12		13		10
-
 */
+
+// ********* SETTINGS ************
+
+
+
+// *******************************
+
+
+extern int M1Speed;
+extern float temp0C, temp1C, temp2C, voltage, current;
+
+
+//File myFile;					// For SD Card logging
 
 void SD_Card_INIT(){
 	Serial.print("Initializing SD card...");
@@ -41,7 +60,8 @@ void SD_log(){
 	
 	// Used Examples->datalogger.ino as reference
 	
-	// TODO 
+	// TODO
+
 	String date = "23.5.20";
 	String time = "16:49:12";
 	
@@ -60,8 +80,8 @@ void SD_log(){
 	dataString += String(voltage);
 	dataString += ",";
 	dataString += String(current);
-  dataString += ",";
-  dataString += String(M1Speed);
+  	dataString += ",";
+  	dataString += String(M1Speed);
   
 	
 	// open the file. note that only one file can be open at a time,

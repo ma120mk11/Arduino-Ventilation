@@ -1,3 +1,15 @@
+#include "motor_speed.h"
+
+extern bool enableHeating;
+extern float temp1C;
+extern float temp2C;
+extern int tempUpper;
+extern int tempLower;
+extern int M1Speed;
+extern int autoCyckle;
+extern int n;
+extern int k;
+
 void heating(){
 	if (enableHeating == 1)
 	{
