@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include <SD.h>
-//#include <SPI.h>
 #include "nextionDisp.h"
 #include "settings.h"
 
