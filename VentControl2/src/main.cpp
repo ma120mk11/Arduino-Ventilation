@@ -9,24 +9,6 @@
 #include <SPI.h>
 #include <SD.h>
 
-// USE TX2 for Nextion display communication
-
-//*********************** PINS ******************************
-
-/*
-const int TempSensor0 = A4;		// LM35 temp sensor0 		OUTSIDE TEMP
-const int TempSensor1 = A1;   	// LM35 temp sensor1 pin  	PANEL TEMP
-const int TempSensor2 = A2;   	// LM35 temp sensor2 pin	HOT AIR
-const int TempSensor3 = A3;   	// LM35 temp sensor3 pin	LIVING ROOM
-const int TempSensor4 = A5;   	// LM35 temp sensor4 pin
-
-const int CurrentSensor = A7;  	// Current sensor pin
-const int VoltageSensor = A8;  	// Voltage sensor pin
-*/
-
-// See SD_Card.ino for more info:
-//const int chipSelect = 53;		// Pin for SD card
-
 
 
 //*********************** SETTINGS ***************************
@@ -36,7 +18,6 @@ bool allow2motors 	= 0;		// Nextion setting, set default value here
 bool enableHeating 	= 0;		// Enable AUTO setting for motor 1
 bool enableMotorStep = 0;		// In auto mode, on -> use motor speeds 0,3,4,5. Off -> on/off
 
-float pinReference = 5;			// 
 
 int tempUpper = 40;				// At which temperature to start motor
 int tempLower = 30;				// At which temp to stop motor
@@ -105,29 +86,6 @@ float t3sensorOffset = 2;
 float voltageOffset = 0;
 float currentOffset = 0;
 
-
-//*********************** FUNCTIONS  *******************************
-
-/*
-void SD_Card_INIT();
-void nexButtons_INIT();
-void m1SetSpeed(int s);
-void m2SetSpeed(int s);
-void sensorRead();
-void sensorCheck();
-void heating();
-void sysValUpdate();			                          // Updates sensor values on NEXTION
-void sensor_maxReset();
-void NEXsensor_maxUpdate();
-void NEXtempThrUpdate();
-float filter(float, float, float, float);
-String SD_Card_Error(String);
-void SD_log();
-void nextion_update(String object, float value);    // sends message to nextion
-void nextion_update(String object, int value);
-void nextion_goToPage(String page);
-void nextion_update(String object, String message);
-*/
 
 //#########################         NEXTION               #############################
 

@@ -4,28 +4,9 @@
 #include "nextionDisp.h"
 #include "settings.h"
 
-
-/*
-https://lastminuteengineers.com/arduino-micro-sd-card-module-tutorial/
-
-Pinout:			MOSI	MISO	SCK		CS
-Arduino Mega	51		50		52		53
-Arduino Uno		11		12		13		10
-Arduino Nano	11		12		13		10
-*/
-
-// ********* SETTINGS ************
-
-
-
-// *******************************
-
-
 extern int M1Speed;
 extern float temp0C, temp1C, temp2C, voltage, current;
 
-
-//File myFile;					// For SD Card logging
 
 void SD_Card_INIT(){
 	Serial.print("Initializing SD card...");

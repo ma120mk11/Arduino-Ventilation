@@ -11,7 +11,7 @@ extern float temp0C, temp1C, temp2C, temp3C, temp4C, voltage, current, tempDelta
 extern float v0_1, v0_2, i0_1, i0_2;
 extern float temp0C_max, temp1C_max, temp2C_max, temp3C_max, temp4C_max, voltage_min, voltage_max, current_max, tempDelta_max;
 extern int M1Speed;
-extern float filteredSignal, pinReference;
+extern float filteredSignal;
 extern float t0sensorOffset, t1sensorOffset, t2sensorOffset, t3sensorOffset, voltageOffset, currentOffset;
 
 
@@ -25,9 +25,6 @@ void sensorRead(){
 	//**** VARIABLES *******
 	float c = 0;				// For calculation
 	int n = smoothing;			// For calculation
-
-
-
 
 
 	float t0 = 0;
@@ -44,6 +41,7 @@ void sensorRead(){
 	float t2_1 = t2;
 	float t3_1 = t3;
 	*/
+
 	v0_2 = v0_1;
 	v0_1 = voltage;
 	i0_2 = i0_1;
