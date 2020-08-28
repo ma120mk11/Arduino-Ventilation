@@ -15,3 +15,8 @@
 
 #define chipSelect 53		// pin for SD card chip select (see SD_card.h)
 #define pinReference 5      // The measured value of +5V pin
+
+// pins for DS1302 RTC Module
+#define rtc_RST 8
+#define rtc_IO 7
+#define rtc_SCL 6

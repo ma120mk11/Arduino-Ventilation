@@ -1,4 +1,4 @@
-#include <Arduino.h>
+
 #include "Nextion.h"
 #include "nextionDisp.h"
 #include "SD_Card.h"
@@ -6,13 +6,13 @@
 #include "motor_speed.h"
 #include "heating.h"
 #include "settings.h"
+#include <Arduino.h>
 #include <SPI.h>
 #include <SD.h>
-
-
+#include <RTClib.h>
 
 //*********************** SETTINGS ***************************
-bool enableSerialPrint = 1;		// Turn on/off printing sensor values to serial 1
+bool enableSerialPrint = 0;		// Turn on/off printing sensor values to serial 1
 bool sendToNextion 	= 1;		// Turn on/off sending sensor values to nextion (serial 2)
 bool allow2motors 	= 0;		// Nextion setting, set default value here
 bool enableHeating 	= 0;		// Enable AUTO setting for motor 1
@@ -86,10 +86,13 @@ float t3sensorOffset = 2;
 float voltageOffset = 0;
 float currentOffset = 0;
 
+// Initialize rtc object
+DS1302 rtc(rtc_RST, rtc_SCL, rtc_IO);
+
 
 //#########################         NEXTION               #############################
 
-// Declare Nextion objects
+	// Declare Nextion objects
     /* Types of objects:
      * NexButton - Button
      * NexDSButton - Dual-state Button
@@ -107,70 +110,70 @@ float currentOffset = 0;
      * NexRtc - To use the real time clock for Enhanced Nextion displays
      */
      
-// PAGE 0 - menu
+	// PAGE 0 - menu
 
-// MENU - Page 0
-//	NexButton to_sleep = NexButton(0,4,"to_sleep");
-	  NexButton springHeat = NexButton(0,3,"springHeat");
-	
-// Sleep page
-//	NexButton t1 = NexButton(13,2,"t1");
-
-
-// Set Time
-
-    NexButton setTime = NexButton(3,17,"setTime");
+	// MENU - Page 0
+	//	NexButton to_sleep = NexButton(0,4,"to_sleep");
+		NexButton springHeat = NexButton(0,3,"springHeat");
+		
+	// Sleep page
+	//	NexButton t1 = NexButton(13,2,"t1");
 
 
-//  MANUAL MOTOR 1 - Page 4
+	// Set Time
 
-    NexButton bMS1 = NexButton(4,1,"bMS1");                 // Button 1
-    NexButton bMS2 = NexButton(4,2,"bMS2");                 // Button 2
-    NexButton bMS3 = NexButton(4,3,"bMS3");                 // Button 3
-    NexButton bMS4 = NexButton(4,4,"bMS4");                 // Button 4
-    NexButton bMS5 = NexButton(4,5,"bMS5");                 // Button 5
-    NexButton bMS0 = NexButton(4,6,"bMS0");                 // Button OFF
-	NexButton bM2  = NexButton(4,12,"bM2");				  	// Change to motor 2 (page 5)
-
-//  MANUAL MOTOR 2 - Page 5
-
-    NexButton bM2S1 = NexButton(5,1,"bM2S1");           // Button 1
-    NexButton bM2S2 = NexButton(5,2,"bM2S2");           // Button 2
-    NexButton bM2S3 = NexButton(5,3,"bM2S3");           // Button 3
-    NexButton bM2S4 = NexButton(5,4,"bM2S4");           // Button 4
-    NexButton bM2S5 = NexButton(5,5,"bM2S5");           // Button 5
-    NexButton bM2S0 = NexButton(5,6,"bM2S0");           // Button OFF
-	NexButton bM1	= NexButton(5,11,"bM1");			// Change to motor 1 (page 4)
-
-// Spring Heating MODE
-	NexButton springExit = NexButton(6,1,"springExit");		// Exit spring mode
+		NexButton setTime = NexButton(3,17,"setTime");
 
 
-//	spring_sett1 - SPRING SETTINGS
-	NexButton Dec_Utemp = NexButton(7,5,"Dec_Utemp");	// Upper temp DECREASE
-	NexButton Inc_Utemp = NexButton(7,7,"Inc_Utemp");	// Upper temp INCREASE
-	NexButton Dec_Ltemp = NexButton(7,6,"Dec_Ltemp");
-	NexButton Inc_Ltemp = NexButton(7,8,"Inc_Ltemp");
+	//  MANUAL MOTOR 1 - Page 4
 
-	//NexDSButton btallow2m = NexDSButton(10,13,"btallow2m");	  // Allow 2 motors att the same time?
-	
-// 9 - Sensor_data
-	
-	NexButton Measure = NexButton(9,22,"Measure");
-	
-	
-// 10 - sensor_top
-	NexButton Reset = NexButton(10,22,"Reset");			// Reset top_values
-	NexButton Update = NexButton(10,25,"Update");
+		NexButton bMS1 = NexButton(4,1,"bMS1");                 // Button 1
+		NexButton bMS2 = NexButton(4,2,"bMS2");                 // Button 2
+		NexButton bMS3 = NexButton(4,3,"bMS3");                 // Button 3
+		NexButton bMS4 = NexButton(4,4,"bMS4");                 // Button 4
+		NexButton bMS5 = NexButton(4,5,"bMS5");                 // Button 5
+		NexButton bMS0 = NexButton(4,6,"bMS0");                 // Button OFF
+		NexButton bM2  = NexButton(4,12,"bM2");				  	// Change to motor 2 (page 5)
 
-// 14 Voltage Error
-	NexButton v_err_exit = NexButton(14,6,"v_err_exit");			// Exit mode
-	NexButton ignore = NexButton(14,3,"ignore");		// Ignore error	
+	//  MANUAL MOTOR 2 - Page 5
 
-// 15 - Settings 2
+		NexButton bM2S1 = NexButton(5,1,"bM2S1");           // Button 1
+		NexButton bM2S2 = NexButton(5,2,"bM2S2");           // Button 2
+		NexButton bM2S3 = NexButton(5,3,"bM2S3");           // Button 3
+		NexButton bM2S4 = NexButton(5,4,"bM2S4");           // Button 4
+		NexButton bM2S5 = NexButton(5,5,"bM2S5");           // Button 5
+		NexButton bM2S0 = NexButton(5,6,"bM2S0");           // Button OFF
+		NexButton bM1	= NexButton(5,11,"bM1");			// Change to motor 1 (page 4)
 
-	NexButton v_errDec = NexButton(15,3,"v_errDec");
-	NexButton v_errInc = NexButton(15,4,"v_errInc");
+	// Spring Heating MODE
+		NexButton springExit = NexButton(6,1,"springExit");		// Exit spring mode
+
+
+	//	spring_sett1 - SPRING SETTINGS
+		NexButton Dec_Utemp = NexButton(7,5,"Dec_Utemp");	// Upper temp DECREASE
+		NexButton Inc_Utemp = NexButton(7,7,"Inc_Utemp");	// Upper temp INCREASE
+		NexButton Dec_Ltemp = NexButton(7,6,"Dec_Ltemp");
+		NexButton Inc_Ltemp = NexButton(7,8,"Inc_Ltemp");
+
+		//NexDSButton btallow2m = NexDSButton(10,13,"btallow2m");	  // Allow 2 motors att the same time?
+		
+	// 9 - Sensor_data
+		
+		NexButton Measure = NexButton(9,22,"Measure");
+		
+		
+	// 10 - sensor_top
+		NexButton Reset = NexButton(10,22,"Reset");			// Reset top_values
+		NexButton Update = NexButton(10,25,"Update");
+
+	// 14 Voltage Error
+		NexButton v_err_exit = NexButton(14,6,"v_err_exit");			// Exit mode
+		NexButton ignore = NexButton(14,3,"ignore");		// Ignore error	
+
+	// 15 - Settings 2
+
+		NexButton v_errDec = NexButton(15,3,"v_errDec");
+		NexButton v_errInc = NexButton(15,4,"v_errInc");
 
 
 // ************* Register button objects to the touch event list. *****************
@@ -218,7 +221,6 @@ NexTouch *nex_listen_list[] = {
 	  
 	// Settings Page 10
 	
-
 	// sensor_data
 	  &Measure,
 	  
@@ -243,16 +245,6 @@ NexTouch *nex_listen_list[] = {
 	void springHeatPopCallback(void *ptr){
 		enableHeating = 1;
 	}
-
-/*
-	void to_sleepPopCallback(void *ptr){
-		sendToNextion=0;
-	}
-	
-	void t1PopCallback(void *ptr){
-		sendToNextion=1;
-	}
-*/	
 
   void setTimePopCallback(void *ptr){
     /**
@@ -411,20 +403,25 @@ NexTouch *nex_listen_list[] = {
 
 //**********************************************   SETUP     ********************************************//
 void setup() {													
-  	//analogReference(INTERNAL2V56);		// ADC Voltage reference, pinReference in settings should be the same
 	Serial.begin(9600);
 	nexInit();
-  	//nexButtons_INIT();                 // attach pop callback
-	pinMode(Motor1, OUTPUT);           // set motor as output
-	pinMode(Motor2, OUTPUT);           // set motor as output
+  	//nexButtons_INIT();           		// attach pop callback
+	pinMode(Motor1, OUTPUT);           	// set motor as output
+	pinMode(Motor2, OUTPUT);           	// set motor as output
 	sensorRead();
 	SD_Card_INIT();
- 
+
+	rtc.begin();
+	if(!rtc.isrunning()){
+		Serial.println("RTC is not running.");
+		rtc.adjust(DateTime(__DATE__,__TIME__));
+	}
+
+	rtc.adjust(DateTime(__DATE__,__TIME__));
+
 	//void nexButtons_INIT(){
 
 	springHeat.attachPop(springHeatPopCallback, &springHeat); // MENU
-	//  to_sleep.attachPop(to_sleepPopCallback, &to_sleep);
-	//  t1.attachPop(t1PopCallback, &t1);
 
 	setTime.attachPop(setTimePopCallback, &setTime);  // Page 3
 
@@ -489,18 +486,28 @@ void loop() {
 	*/
    
 	nexLoop(nex_listen_list);
-	sensorRead();
-	SD_log();
 
- // We dont need to update nextion values every cycle. 
+	// char buff[20];
+
+	DateTime now = rtc.now();
+	//Serial.println(now.minute());
+	
+	Serial.println(String(now.day()) + "." + 
+				String(now.month()) + " - " + 
+				String(now.hour()) + ":" + 
+				String(now.minute()) + ":" + 
+				String(now.second())
+				);
+	sensorRead();
+	//SD_log();
+
+ 	// We dont need to update nextion values every cycle. 
 	if(nexUpload >= 10){
 		sysValUpdate();
 		nexUpload = 0;
 	}
 	nexUpload++;
 
-  
 	heating();
-	
 	delay(100);		//500
 }
