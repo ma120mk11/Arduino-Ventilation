@@ -11,6 +11,7 @@ extern int n;
 extern int k;
 
 void heating(){
+	// Check if heating is enabled
 	if (enableHeating == 1)
 	{
 		if (temp1C > tempUpper){

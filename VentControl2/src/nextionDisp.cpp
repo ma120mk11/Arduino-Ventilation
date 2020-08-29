@@ -14,6 +14,7 @@ extern float temp3C;
 extern float temp4C;		  	
 extern float voltage;
 
+
 extern float v0_1;
 extern float v0_2;
 
@@ -53,30 +54,32 @@ extern int tempUpper, tempLower;
 void nextion_goToPage(String page){
     Serial2.print("page ");
     Serial2.print(page);
-    Serial2.print(0xff);
-    Serial2.print(0xff);
-    Serial2.print(0xff);
+    Serial2.write(0xff);
+    Serial2.write(0xff);
+    Serial2.write(0xff);
 }
 void nextion_update(String object, float value){
     Serial2.print(object);
     Serial2.print(value);
-    Serial2.print(0xff);
-    Serial2.print(0xff);
-    Serial2.print(0xff);
-}
+    Serial2.write(0xff);
+    Serial2.write(0xff);
+    Serial2.write(0xff);
+}	
 void nextion_update(String object, int value){
     Serial2.print(object);
     Serial2.print(value);
-    Serial2.print(0xff);
-    Serial2.print(0xff);
-    Serial2.print(0xff);
+    Serial2.write(0xff);
+    Serial2.write(0xff);
+    Serial2.write(0xff);
 }
 void nextion_update(String object, String message){
     Serial2.print(object);
+	Serial2.print("\"");
     Serial2.print(message);
-    Serial2.print(0xff);
-    Serial2.print(0xff);
-    Serial2.print(0xff);
+	Serial2.print("\"");
+    Serial2.write(0xff);
+    Serial2.write(0xff);
+    Serial2.write(0xff);
 }
 
 
@@ -86,7 +89,7 @@ void sysValUpdate(){
 	}
 	// Current motor speeds
   	nextion_update("data.M1.val=", M1Speed);
-  	nextion_update("data.M2.val", M2Speed);
+  	nextion_update("data.M2.val=", M2Speed);
 
 	// Sensor data:
 	int t0 = temp0C*10.0;
@@ -98,8 +101,6 @@ void sysValUpdate(){
 	
 	int tDelta = tempDelta*10.0;
 	
-  	nextion_update("data.M1.val=", M1Speed);
-	nextion_update("data.M2.val=", M2Speed);
 	nextion_update("data.T0.val=", t0);
 	nextion_update("data.T1.val=", t1);
 	nextion_update("data.T2.val=", t2);
@@ -117,10 +118,8 @@ void NEXsensor_maxUpdate(){
 	int t1_max = temp1C_max*10;
 	int t2_max = temp2C_max*10;
 	int t3_max = temp3C_max*10;
-	
 	int v_max = voltage_max*10;
 	int v_min = voltage_min*10;
-	
 	int i_max = current_max*10;
 	
 	nextion_update("sensor_top.t0_top.val=", t0_max);

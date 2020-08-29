@@ -9,4 +9,5 @@ Arduino Nano	11		12		13		10
 *************************************************************************/
 
 void SD_Card_INIT();
-void SD_log();
+void SD_log(String date, String time);
+void SD_unmount();

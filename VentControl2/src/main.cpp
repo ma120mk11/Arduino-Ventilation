@@ -29,7 +29,6 @@ float e_voltageThr = 10.7;    // If voltage goes under this value, send error me
 
 
 
-
 // ********************** VARIABLES **************************
 
 int M1PWM = 0;            		// motor1 PWM speed (0-255)
@@ -43,15 +42,14 @@ float temp1C;					// TempSensor1 value in degrees
 float temp2C;					// TempSensor2 value in degrees
 float temp3C;					// TempSensor3
 float temp4C = 5.4;		  		// TempSensor4
-float voltage;
-
-float v0_1 = 0;
-float v0_2 = 0;
-
+float voltage;					// 
 float current;					// Voltage sensor current reading
 
-float i0_1 = 0;					// last value
-float i0_2 = 0;					// second last value
+float v0_1 = 0;					// Previous voltage reading
+float v0_2 = 0;					// Second last voltage reading
+
+float i0_1 = 0;					// Previous current reading
+float i0_2 = 0;					// second last current reading
 
 float filteredSignal = 0;		// For debugging and comparison
 
@@ -60,10 +58,10 @@ float temp1C_max = 0;
 float temp2C_max = 0;			
 float temp3C_max = 0;			
 float temp4C_max = 0;
-float voltage_min = 50;			// High value so it gets overwritten at start		
-float voltage_max = 0;
-float current_max;
-float tempDelta_max;
+float voltage_min = 50;			// Set to high value so it gets overwritten at start		
+float voltage_max = 0;			
+float current_max;				
+float tempDelta_max;			
 
 float tempDelta;				// How much the temperature is increased when flowing through panel
 
@@ -73,7 +71,7 @@ int nextionMode;				// the active mode
 int voltageErrorCount = 0;		// 
 bool errorPending = 0;			//
 
-int nexUpload = 0;
+int nexUpload = 0;				//
 
 int n = autoCyckle;
 int k = autoCyckle;
@@ -175,6 +173,9 @@ DS1302 rtc(rtc_RST, rtc_SCL, rtc_IO);
 		NexButton v_errDec = NexButton(15,3,"v_errDec");
 		NexButton v_errInc = NexButton(15,4,"v_errInc");
 
+	// 21 - sd_card_sett
+		NexButton sd_unmount = NexButton(21,4,"sd_unmount");
+		NexButton sd_init = NexButton(21,5,"sd_init");
 
 // ************* Register button objects to the touch event list. *****************
 NexTouch *nex_listen_list[] = {
@@ -235,6 +236,12 @@ NexTouch *nex_listen_list[] = {
 	
 		&v_errDec,
 		&v_errInc,
+
+
+	// 21 sd_card_sett
+
+		&sd_unmount,
+		&sd_init,	
     NULL
 };
 
@@ -401,9 +408,18 @@ NexTouch *nex_listen_list[] = {
       nextion_update("settings_2.v_err.val=", thr);
 		}
 
+	// page 21 sd_card_sett
+		void sd_unmountPopCallback(void *ptr){
+			SD_unmount();
+		}
+
+		void sd_initPopCallback(void *ptr){
+			SD_Card_INIT();
+		}
 //**********************************************   SETUP     ********************************************//
 void setup() {													
 	Serial.begin(9600);
+	Serial2.begin(9600);
 	nexInit();
   	//nexButtons_INIT();           		// attach pop callback
 	pinMode(Motor1, OUTPUT);           	// set motor as output
@@ -459,7 +475,9 @@ void setup() {
 	
 	v_errDec.attachPop(v_errDecPopCallback, &v_errDec);     // page 15 - settings 2
 	v_errInc.attachPop(v_errIncPopCallback, &v_errInc);
-
+	// Page 21
+	sd_init.attachPop(sd_initPopCallback, &sd_init);
+	sd_unmount.attachPop(sd_unmountPopCallback, &sd_unmount);
 
 	// *** Update NEXTION start values ***
 	sensorRead();               // We need to read values first
@@ -473,7 +491,9 @@ void setup() {
 
 } // END OF SETUP
 
-
+int prevDay;
+unsigned long loop_timer_1s;
+unsigned long loop_timer_3s;
 
 //##############################################      MAIN       ############################################################
 void loop() {
@@ -485,29 +505,94 @@ void loop() {
    * 
 	*/
    
-	nexLoop(nex_listen_list);
-
-	// char buff[20];
+   	#define ONE_SEC 1000
+	#define THREE_SEC 3000
 
 	DateTime now = rtc.now();
-	//Serial.println(now.minute());
-	
-	Serial.println(String(now.day()) + "." + 
+	String date = String(now.day()) + "." + String(now.month()) + "." + String(now.year());
+	String time = String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second());
+
+	// Ecery cycle::
+	nexLoop(nex_listen_list);
+
+
+
+
+	// Once every second:
+	if((millis() - loop_timer_1s) > ONE_SEC){
+
+
+		heating();
+
+
+
+
+
+
+		loop_timer_1s = millis();		// Reset timer
+	}
+
+
+
+	// Once every 3 seconds
+	if((millis() - loop_timer_3s) > THREE_SEC){
+
+
+		sensorRead();
+
+		
+		SD_log(date, time);
+
+		/*
+		Serial.println(String(now.day()) + "." + 
 				String(now.month()) + " - " + 
 				String(now.hour()) + ":" + 
 				String(now.minute()) + ":" + 
 				String(now.second())
-				);
-	sensorRead();
-	//SD_log();
+		);*/
 
- 	// We dont need to update nextion values every cycle. 
-	if(nexUpload >= 10){
 		sysValUpdate();
-		nexUpload = 0;
-	}
-	nexUpload++;
 
-	heating();
-	delay(100);		//500
+
+		// Update nextion clock:
+		nextion_update("rtc2=", int(now.day()));
+		nextion_update("rtc1=", now.month());
+	//	nextion_update("rtc0.val=", now.year());
+		nextion_update("rtc3=", now.hour());
+		nextion_update("rtc4=", now.minute());
+
+		Serial.println(temp1C);
+
+		nextion_update("menu.t3.txt=", "TEST");
+
+/*
+		mySerial.print(F("t1.txt=\""));
+  		mySerial.print(F("RPM = "));
+  		mySerial.print(rpm);
+  		mySerial.print(F("\""));
+*/
+		loop_timer_3s = millis();		// Reset timer
+	}
+
+	
+
+	// Once every day
+	if(now.day() != prevDay){
+		
+
+
+
+		// Update nextion clock:
+			nextion_update("rtc2=", now.day());
+			nextion_update("rtc1=", now.month());
+			// TODO //nextion_update("rtc0.val=", now.year());
+			nextion_update("rtc3=", now.hour());
+			nextion_update("rtc4=", now.minute());
+
+		prevDay = now.day();			// Reset logic
+	}
+
+
+	
+
 }

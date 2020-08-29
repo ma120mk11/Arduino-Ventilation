@@ -2,8 +2,8 @@
 
 // USE TX2 for Nextion display communication
 
-#define Motor1 4            // motor1 pin HEATED AIR
-#define Motor2 3			// motor2 pin DIRECT AIR
+#define Motor1 9            // motor1 pin HEATED AIR
+#define Motor2 10			// motor2 pin DIRECT AIR
 
 #define TempSensor0 A4		// LM35 temp sensor0 pin	OUTSIDE TEMP
 #define TempSensor1 A1   	// LM35 temp sensor1 pin  	PANEL TEMP
