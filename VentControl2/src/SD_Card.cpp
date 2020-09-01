@@ -5,10 +5,13 @@
 #include <RTClib.h>
 
 extern int M1Speed;
-extern float temp0C, temp1C, temp2C, voltage, current;
+extern float temp0C, temp1C, temp2C, temp3C, voltage, current;
 
 bool sd_errorFlag = 0;
 bool unmountedFlag = 0;
+
+// Headers to the CSV file:
+String headers = "date,time,outside,panel,heated-air,room,voltage,current,motorSpeed";
 
 
 void SD_Card_INIT(){
@@ -20,38 +23,37 @@ void SD_Card_INIT(){
 		// Send error message to nextion:
 		SD_Card_Error("SD card failed, or not present");
 		nextion_update("sd_card_sett.sdStatus.txt=", "Could not find SD card");
+		nextion_update("data.sd_status.val=", 0);		// Update sd status
 		return;
 	}
 
 	Serial.println("card initialized.");
 	
-	// Write Headers to the CSV file:
-	String headers = "date,time,outside,panel,inside,voltage,current,motorSpeed";
-	
-	File dataFile = SD.open("datalog.csv", FILE_WRITE);
+	bool exists = SD.exists("datalog.csv");				// Check if file already exists
+
+	File dataFile = SD.open("datalog.csv", FILE_WRITE);	// Open file
 
 	// if the file is available, write to it:
 	if (dataFile) {
-		dataFile.println(headers);
+		if(!exists){dataFile.println(headers);}			// Create headers only if the file was just created
 		dataFile.close();
 		nextion_update("sd_card_sett.sdStatus.txt=", "Working");
+		nextion_update("data.sd_status.val=", 1);		// Update sd status
 	}
 	// if the file isn't open, pop up an error:
 	else {
 		Serial.println("error opening datalog.csv");
 		SD_Card_Error("error opening datalog.csv");
 		nextion_update("sd_card_sett.sdStatus.txt=", "Could not open CSV file");
+		nextion_update("data.sd_status.val=", 0);		// Update sd status
 	}
 	unmountedFlag = 0;
 }
 
 void SD_log(String date, String time){
+	// Don't try to open and write to the file if card was unmounted
 	if(unmountedFlag==0){	
 		// Used Examples->datalogger.ino as reference
-		
-		// TODO
-
-		//DateTime now = rtc.now();
 		
 		String dataString = "";
 		
@@ -64,6 +66,8 @@ void SD_log(String date, String time){
 		dataString += String(temp1C);
 		dataString += ",";
 		dataString += String(temp2C);
+		dataString += ",";
+		dataString += String(temp3C);
 		dataString += ",";
 		dataString += String(voltage);
 		dataString += ",";
@@ -89,6 +93,7 @@ void SD_log(String date, String time){
 				Serial.println("error opening datalog.csv");
 				SD_Card_Error("Could not write to csv file");
 				nextion_update("sd_card_sett.sdStatus.txt=", "Could not write to csv file");
+				nextion_update("data.sd_status.val=", 0);		// Update sd status
 				// Set to 1 so we dont get an error every cycle if no card is present
 				sd_errorFlag = 1;			
 			}
@@ -101,4 +106,5 @@ void SD_unmount(){
 	unmountedFlag = 1;		// Notify that the card was unmounted
 	nextion_update("sd_card_sett.sdStatus.txt=", "Unmounted");
 	Serial.println("Unmounted SD card");
+	nextion_update("data.sd_status.val=", 0);		// Update sd status
 }

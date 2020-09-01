@@ -14,7 +14,6 @@ extern float temp3C;
 extern float temp4C;		  	
 extern float voltage;
 
-
 extern float v0_1;
 extern float v0_2;
 
@@ -47,8 +46,6 @@ extern int nexUpload;
 
 
 extern int tempUpper, tempLower;
-
-
 
 
 void nextion_goToPage(String page){

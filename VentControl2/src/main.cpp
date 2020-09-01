@@ -15,9 +15,8 @@
 bool enableSerialPrint = 0;		// Turn on/off printing sensor values to serial 1
 bool sendToNextion 	= 1;		// Turn on/off sending sensor values to nextion (serial 2)
 bool allow2motors 	= 0;		// Nextion setting, set default value here
-bool enableHeating 	= 0;		// Enable AUTO setting for motor 1
+bool enableHeating 	= 1;		// Enable AUTO setting for motor 1
 bool enableMotorStep = 0;		// In auto mode, on -> use motor speeds 0,3,4,5. Off -> on/off
-
 
 int tempUpper = 40;				// At which temperature to start motor
 int tempLower = 30;				// At which temp to stop motor
@@ -26,7 +25,6 @@ int autoCyckle = 20;			// Number of times to read value over threshold before ac
 
 //********************** ERROR SETTINGS ***************************
 float e_voltageThr = 10.7;    // If voltage goes under this value, send error message
-
 
 
 // ********************** VARIABLES **************************
@@ -42,8 +40,8 @@ float temp1C;					// TempSensor1 value in degrees
 float temp2C;					// TempSensor2 value in degrees
 float temp3C;					// TempSensor3
 float temp4C = 5.4;		  		// TempSensor4
-float voltage;					// 
-float current;					// Voltage sensor current reading
+float voltage;					// Voltage sensor reading
+float current;					// 
 
 float v0_1 = 0;					// Previous voltage reading
 float v0_2 = 0;					// Second last voltage reading
@@ -111,11 +109,7 @@ DS1302 rtc(rtc_RST, rtc_SCL, rtc_IO);
 	// PAGE 0 - menu
 
 	// MENU - Page 0
-	//	NexButton to_sleep = NexButton(0,4,"to_sleep");
-		NexButton springHeat = NexButton(0,3,"springHeat");
-		
-	// Sleep page
-	//	NexButton t1 = NexButton(13,2,"t1");
+		NexButton springHeat = NexButton(0,4,"springHeat");
 
 
 	// Set Time
@@ -251,6 +245,8 @@ NexTouch *nex_listen_list[] = {
 // ********** MENU **********
 	void springHeatPopCallback(void *ptr){
 		enableHeating = 1;
+		Serial.print("Enabled Heating on display. enableHeating = ");
+		Serial.println(enableHeating);
 	}
 
   void setTimePopCallback(void *ptr){
@@ -274,28 +270,23 @@ NexTouch *nex_listen_list[] = {
 		
 	// 2-button release function
 		void bMS2PopCallback(void *ptr){
-		m1SetSpeed(2);
-	   
+			m1SetSpeed(2);
 		}
 	// 3-button release function
 		void bMS3PopCallback(void *ptr){
-		m1SetSpeed(3); 
-	   
+			m1SetSpeed(3); 
 		}
 	// 4-button release function
 		void bMS4PopCallback(void *ptr){
-		m1SetSpeed(4);  
-	  
+			m1SetSpeed(4);  
 		}
 	// 5-button release function
 		void bMS5PopCallback(void *ptr){
-		m1SetSpeed(5);
-	  
+			m1SetSpeed(5);
 		}
 	// OFF-button release function
 		void bMS0PopCallback(void *ptr){
-		m1SetSpeed(0); 
-
+			m1SetSpeed(0); 
 		}
 	// Motor 2 button
 		void bM2PopCallback(void *ptr){
@@ -307,29 +298,25 @@ NexTouch *nex_listen_list[] = {
 
 	// 1-button release function
 		void bM2S1PopCallback(void *ptr){
-		  m2SetSpeed(1);                	// Sets motor speed
-		  dbSerialPrintln("Page5-Button-1");
+			m2SetSpeed(1);                	// Sets motor speed
+		  	dbSerialPrintln("Page5-Button-1");
 		}
 		
 	// 2-button release function
 		void bM2S2PopCallback(void *ptr){
-		m2SetSpeed(2);
-	   
+			m2SetSpeed(2);
 		}
 	// 3-button release function
 		void bM2S3PopCallback(void *ptr){
-		m2SetSpeed(3); 
-	   
+			m2SetSpeed(3); 
 		}
 	// 4-button release function
 		void bM2S4PopCallback(void *ptr){
-		m2SetSpeed(4);  
-	  
+			m2SetSpeed(4);  
 		}
 	// 5-button release function
 		void bM2S5PopCallback(void *ptr){
-		m2SetSpeed(5);
-	  
+			m2SetSpeed(5);
 		}
 	// OFF-button release function
 		void bM2S0PopCallback(void *ptr){
@@ -389,7 +376,7 @@ NexTouch *nex_listen_list[] = {
 	// 14 Voltage error
 		void v_err_exitPopCallback(void *ptr){
 			errorPending=0;
-			enableHeating=0;
+			enableHeating=0;					// Turn off heating
 		}
 		void ignorePopCallback(void *ptr){
 			errorPending=0;
@@ -399,13 +386,13 @@ NexTouch *nex_listen_list[] = {
 		void v_errDecPopCallback(void *ptr){
 			e_voltageThr -= 0.1;
 			int thr = e_voltageThr*10;
-      nextion_update("settings_2.v_err.val=", thr);
+      		nextion_update("settings_2.v_err.val=", thr);
 		}
 		
 		void v_errIncPopCallback(void *ptr){
 			e_voltageThr += 0.1;
 			int thr = e_voltageThr*10;
-      nextion_update("settings_2.v_err.val=", thr);
+      		nextion_update("settings_2.v_err.val=", thr);
 		}
 
 	// page 21 sd_card_sett
@@ -420,22 +407,26 @@ NexTouch *nex_listen_list[] = {
 void setup() {													
 	Serial.begin(9600);
 	Serial2.begin(9600);
-	nexInit();
-  	//nexButtons_INIT();           		// attach pop callback
+	nexInit();							// Initialize nextion display
+	nextion_goToPage("ardu_restart");	// Notify the display that arduino was restarted
 	pinMode(Motor1, OUTPUT);           	// set motor as output
 	pinMode(Motor2, OUTPUT);           	// set motor as output
 	sensorRead();
-	SD_Card_INIT();
+	
 
 	rtc.begin();
 	if(!rtc.isrunning()){
-		Serial.println("RTC is not running.");
+		Serial.print("RTC is not running. ");
 		rtc.adjust(DateTime(__DATE__,__TIME__));
+		Serial.println("Time and date adjusted");
 	}
 
-	rtc.adjust(DateTime(__DATE__,__TIME__));
+	//TODO comment
+	//rtc.adjust(DateTime(__DATE__,"14:42:30"));
 
-	//void nexButtons_INIT(){
+
+	SD_Card_INIT();
+	
 
 	springHeat.attachPop(springHeatPopCallback, &springHeat); // MENU
 
@@ -460,7 +451,6 @@ void setup() {
 	
 	springExit.attachPop(springExitPopCallback, &springExit);   // PAGE 6 SPRING
 	
-	
 	Dec_Utemp.attachPop(Dec_UtempPopCallback, &Dec_Utemp);
 	Inc_Utemp.attachPop(Inc_UtempPopCallback, &Inc_Utemp);
 	Dec_Ltemp.attachPop(Dec_LtempPopCallback, &Dec_Ltemp);
@@ -480,7 +470,6 @@ void setup() {
 	sd_unmount.attachPop(sd_unmountPopCallback, &sd_unmount);
 
 	// *** Update NEXTION start values ***
-	sensorRead();               // We need to read values first
 	NEXtempThrUpdate();
 	NEXsensor_maxUpdate();
 	
@@ -494,6 +483,7 @@ void setup() {
 int prevDay;
 unsigned long loop_timer_1s;
 unsigned long loop_timer_3s;
+unsigned long loop_timer_1min;
 
 //##############################################      MAIN       ############################################################
 void loop() {
@@ -507,6 +497,7 @@ void loop() {
    
    	#define ONE_SEC 1000
 	#define THREE_SEC 3000
+	#define ONE_MIN 60000
 
 	DateTime now = rtc.now();
 	String date = String(now.day()) + "." + String(now.month()) + "." + String(now.year());
@@ -522,11 +513,6 @@ void loop() {
 	if((millis() - loop_timer_1s) > ONE_SEC){
 
 
-		heating();
-
-
-
-
 
 
 		loop_timer_1s = millis();		// Reset timer
@@ -536,63 +522,41 @@ void loop() {
 
 	// Once every 3 seconds
 	if((millis() - loop_timer_3s) > THREE_SEC){
-
-
 		sensorRead();
-
-		
-		SD_log(date, time);
-
-		/*
-		Serial.println(String(now.day()) + "." + 
-				String(now.month()) + " - " + 
-				String(now.hour()) + ":" + 
-				String(now.minute()) + ":" + 
-				String(now.second())
-		);*/
-
+		heating();
 		sysValUpdate();
 
+
+		loop_timer_3s = millis();		// Reset timer
+	}
+
+	// once every minute
+	if(millis() - loop_timer_1min > ONE_MIN){
+
+		SD_log(date, time);
 
 		// Update nextion clock:
 		nextion_update("rtc2=", int(now.day()));
 		nextion_update("rtc1=", now.month());
-	//	nextion_update("rtc0.val=", now.year());
+		//nextion_update("rtc0=", 2020);				
 		nextion_update("rtc3=", now.hour());
 		nextion_update("rtc4=", now.minute());
 
-		Serial.println(temp1C);
-
-		nextion_update("menu.t3.txt=", "TEST");
-
-/*
-		mySerial.print(F("t1.txt=\""));
-  		mySerial.print(F("RPM = "));
-  		mySerial.print(rpm);
-  		mySerial.print(F("\""));
-*/
-		loop_timer_3s = millis();		// Reset timer
+		loop_timer_1min = millis();
 	}
-
-	
 
 	// Once every day
 	if(now.day() != prevDay){
 		
 
 
-
 		// Update nextion clock:
-			nextion_update("rtc2=", now.day());
-			nextion_update("rtc1=", now.month());
+		nextion_update("rtc2=", now.day());
+		nextion_update("rtc1=", now.month());
 			// TODO //nextion_update("rtc0.val=", now.year());
-			nextion_update("rtc3=", now.hour());
-			nextion_update("rtc4=", now.minute());
+		nextion_update("rtc3=", now.hour());
+		nextion_update("rtc4=", now.minute());
 
 		prevDay = now.day();			// Reset logic
 	}
-
-
-	
-
 }
