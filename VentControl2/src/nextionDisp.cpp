@@ -1,10 +1,8 @@
 #include <Arduino.h>
 #include "Nextion.h"
 
-extern int M1PWM;           
-extern int M2PWM;               
-extern int M1Speed;             
-extern int M2Speed;           
+extern int M1PWM, M2PWM;               
+extern int M1Speed, M2Speed;           
 extern bool m1Running, sendToNextion;
 
 extern float temp0C;					  
@@ -13,6 +11,7 @@ extern float temp2C;
 extern float temp3C;					
 extern float temp4C;		  	
 extern float voltage;
+extern int light;
 
 extern float v0_1;
 extern float v0_2;
@@ -40,7 +39,7 @@ extern int nextionPage;
 extern int nextionMode;				
 
 extern int voltageErrorCount;	
-extern bool errorPending;
+extern bool errorPending, enableHeating;
 
 extern int nexUpload;
 
@@ -95,7 +94,6 @@ void sysValUpdate(){
 	int t3 = temp3C*10.0;
 	int v = voltage*10.0;
 	int i = current*10.0;
-	
 	int tDelta = tempDelta*10.0;
 	
 	nextion_update("data.T0.val=", t0);
@@ -105,6 +103,8 @@ void sysValUpdate(){
 	nextion_update("data.V0.val=", v);
 	nextion_update("data.I0.val=", i);
 	nextion_update("data.tDelta.val=", tDelta);
+	nextion_update("data.L0.val=", light);
+	nextion_update("data.mode.val=", enableHeating);
 	return;
 }
 
