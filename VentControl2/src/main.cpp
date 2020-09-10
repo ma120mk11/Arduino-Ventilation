@@ -42,6 +42,8 @@ float temp3C;					// TempSensor3
 float temp4C = 5.4;		  		// TempSensor4
 float voltage;					// Voltage sensor reading
 float current;					// 
+int light;
+
 
 float v0_1 = 0;					// Previous voltage reading
 float v0_2 = 0;					// Second last voltage reading
@@ -74,13 +76,7 @@ int nexUpload = 0;				//
 int n = autoCyckle;
 int k = autoCyckle;
 
-// ***************** SENSOR CALIBRATION **********************
-float t0sensorOffset = 0;
-float t1sensorOffset = 1;
-float t2sensorOffset = 1.5;
-float t3sensorOffset = 2;
-float voltageOffset = 0;
-float currentOffset = 0;
+
 
 // Initialize rtc object
 DS1302 rtc(rtc_RST, rtc_SCL, rtc_IO);
@@ -175,8 +171,7 @@ DS1302 rtc(rtc_RST, rtc_SCL, rtc_IO);
 NexTouch *nex_listen_list[] = {
    // Page 0 menu
       &springHeat,
-//	  &to_sleep,
-//	  &t1,
+
 	  
    // Page 1
 
@@ -254,7 +249,19 @@ NexTouch *nex_listen_list[] = {
      * TODO:
      * Get the values that are set on the display and update RTC.
      */
-     
+    int setDay, setMonth, setYear, setHour, setMinute;
+	
+
+
+
+	DateTime now = rtc.now();
+	// Update nextion clock:
+	nextion_update("rtc2=", now.day());
+	nextion_update("rtc1=", now.month());
+	// TODO //nextion_update("rtc0.val=", now.year());
+	nextion_update("rtc3=", now.hour());
+	nextion_update("rtc4=", now.minute());
+
   }
 
 
@@ -492,7 +499,7 @@ void loop() {
    * - Periodically run the motor for a specified time automatically. 
    * - Send a "ok" package to display every minute. If display doesn't get the "ok" message, display error message
    * - Set display time once a day. To prevent drifts.
-   * 
+   * - Store settings in EEPROM
 	*/
    
    	#define ONE_SEC 1000
@@ -505,8 +512,6 @@ void loop() {
 
 	// Ecery cycle::
 	nexLoop(nex_listen_list);
-
-
 
 
 	// Once every second:
@@ -535,12 +540,6 @@ void loop() {
 
 		SD_log(date, time);
 
-		// Update nextion clock:
-		nextion_update("rtc2=", int(now.day()));
-		nextion_update("rtc1=", now.month());
-		//nextion_update("rtc0=", 2020);				
-		nextion_update("rtc3=", now.hour());
-		nextion_update("rtc4=", now.minute());
 
 		loop_timer_1min = millis();
 	}
@@ -553,7 +552,7 @@ void loop() {
 		// Update nextion clock:
 		nextion_update("rtc2=", now.day());
 		nextion_update("rtc1=", now.month());
-			// TODO //nextion_update("rtc0.val=", now.year());
+		// TODO //nextion_update("rtc0.val=", now.year());
 		nextion_update("rtc3=", now.hour());
 		nextion_update("rtc4=", now.minute());
 
