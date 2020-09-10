@@ -10,9 +10,9 @@ extern bool enableSerialPrint, m1Running;
 extern float temp0C, temp1C, temp2C, temp3C, temp4C, voltage, current, tempDelta;
 extern float v0_1, v0_2, i0_1, i0_2;
 extern float temp0C_max, temp1C_max, temp2C_max, temp3C_max, temp4C_max, voltage_min, voltage_max, current_max, tempDelta_max;
-extern int M1Speed;
+extern int M1Speed, light;
 extern float filteredSignal;
-extern float t0sensorOffset, t1sensorOffset, t2sensorOffset, t3sensorOffset, voltageOffset, currentOffset;
+//extern float t0sensorOffset, t1sensorOffset, t2sensorOffset, t3sensorOffset, voltageOffset, currentOffset;
 
 
 void sensorRead(){
@@ -33,7 +33,7 @@ void sensorRead(){
 	float t3 = 0;
 	float v0 = 0;
 	float i0 = 0;
-
+	float l0 = 0;	// Light
 	// store previous values
 	/*
 	float t0_1 = t0;
@@ -60,6 +60,7 @@ void sensorRead(){
 		t3 += analogRead(TempSensor3);
 		v0 += analogRead(VoltageSensor);	// Voltage
 		i0 += analogRead(CurrentSensor);	// Current
+		l0 += analogRead(LightSensorPin);	// Light
 		
 		n--;
 		delay(sDLY);
@@ -74,6 +75,7 @@ void sensorRead(){
 	t3 = t3 / n;
 	v0 = v0 / n;
 	i0 = i0 / n;
+	l0 = l0 / n;
 
 
 	//************************ SENSOR 0 OUTSIDE ******************
@@ -91,7 +93,6 @@ void sensorRead(){
 		}   */
 		
 	// **** With OP-amp ****
-		t0sensorOffset = 0;
 		float gain=10.9395;
 		c = t0 * pinReference;				// Convert readings to mV
 		c = c / 1024.0;						
@@ -197,9 +198,16 @@ void sensorRead(){
 			tempDelta_max=tempDelta;
 		}
 			
+	//	********************** LIGHT SENSOR **************************
+
+		light = (l0 / light_max_Reading) * 100;
+
+
+
+
 	//	*********************** SERIAL PRINT ***************************
 	//  Message is formatted for use with Telemetry viewer. Use a layout2 in Telemetry folder.
-
+	// TODO add light sensor
 	if (enableSerialPrint == 1){
 		
 		char outside_text[30];
@@ -225,7 +233,6 @@ void sensorRead(){
 		char text[280];
 		snprintf(text, 280, "%s,%s,%s,%s,%s,%s,%s,%s,%s", outside_text, panel_text, air_text, room_text, voltage_text, current_text,filtered_text,tdelta_text,m1speed_text);
 		Serial.println(text);
-		
 	}	
 		
 	return;
