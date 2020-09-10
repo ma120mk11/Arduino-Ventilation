@@ -10,9 +10,10 @@ extern float temp0C, temp1C, temp2C, temp3C, voltage, current;
 bool sd_errorFlag = 0;
 bool unmountedFlag = 0;
 
-// Headers to the CSV file:
-String headers = "date,time,outside,panel,heated-air,room,voltage,current,motorSpeed";
-
+// Headers to the CSV files:
+String headers = "date,time,outside,panel,heated-air,room,voltage,current,motorSpeed";		// datalog.csv
+String errorHeaders = "date,time,error";
+String reportHeaders = "date,xxx,xxx,xxx";
 
 void SD_Card_INIT(){
 	Serial.print("Initializing SD card...");
@@ -29,8 +30,9 @@ void SD_Card_INIT(){
 
 	Serial.println("card initialized.");
 	
-	bool exists = SD.exists("datalog.csv");				// Check if file already exists
+	// DATALOG
 
+	bool exists = SD.exists("datalog.csv");				// Check if file already exists
 	File dataFile = SD.open("datalog.csv", FILE_WRITE);	// Open file
 
 	// if the file is available, write to it:
@@ -47,6 +49,24 @@ void SD_Card_INIT(){
 		nextion_update("sd_card_sett.sdStatus.txt=", "Could not open CSV file");
 		nextion_update("data.sd_status.val=", 0);		// Update sd status
 	}
+
+
+	// ERROR LIST
+	exists = SD.exists("errorLog.csv");						// Check if file exists
+	File errorList = SD.open("errorlog.csv", FILE_WRITE);	// Open file
+	// if the file is available, write to it:
+	if(errorList){
+		if(!exists){errorList.println(errorHeaders);}
+		errorList.close();
+	}
+	else{
+		Serial.println("error opening errorlog.csv");
+		SD_Card_Error("error opening errorLog.csv");
+		nextion_update("sd_card_sett.sdStatus.txt=", "Could not open errorLog CSV file");
+		nextion_update("data.sd_status.val=", 0);			// Update sd status
+	}
+
+
 	unmountedFlag = 0;
 }
 
