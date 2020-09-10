@@ -1,18 +1,24 @@
-#include <Arduino.h>
+#pragma once
+
 #include "filter.h"
 #include "settings.h"
+#include <Arduino.h>
+#include <DallasTemperature.h>
+#include <OneWire.h>
 
 
 // Global Variables:
-
 extern bool enableSerialPrint, m1Running;
-
 extern float temp0C, temp1C, temp2C, temp3C, temp4C, voltage, current, tempDelta;
 extern float v0_1, v0_2, i0_1, i0_2;
 extern float temp0C_max, temp1C_max, temp2C_max, temp3C_max, temp4C_max, voltage_min, voltage_max, current_max, tempDelta_max;
 extern int M1Speed, light;
 extern float filteredSignal;
 //extern float t0sensorOffset, t1sensorOffset, t2sensorOffset, t3sensorOffset, voltageOffset, currentOffset;
+
+OneWire oneWirePin(outside_temp_pin);
+DallasTemperature sensors(&oneWirePin);
+
 
 
 void sensorRead(){
@@ -93,14 +99,19 @@ void sensorRead(){
 		}   */
 		
 	// **** With OP-amp ****
+	/*
 		float gain=10.9395;
 		c = t0 * pinReference;				// Convert readings to mV
 		c = c / 1024.0;						
 		c = (c / 0.01)/gain;
 		c = c + t0sensorOffset;
 		temp0C = c; //round(c * 10.0) / 10.0;
-		
-		
+	*/	
+
+	// **** DIGITAL SENSOR *****	
+		sensors.begin();
+		sensors.requestTemperatures();
+		temp0C = sensors.requestTemperaturesByIndex(0);
 		
 		
 	//************************  SENSOR 1 PANEL  ****************** 

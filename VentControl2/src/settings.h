@@ -5,6 +5,12 @@
 #define Motor1 9            // motor1 pin HEATED AIR
 #define Motor2 10			// motor2 pin DIRECT AIR
 
+#define outside_temp_pin 52 // DS18B20 digital temperature sensor
+/**
+ * Use a 10k resistor between signal and ???
+ */
+
+
 #define TempSensor0 A4		// LM35 temp sensor0 pin	OUTSIDE TEMP
 #define TempSensor1 A1   	// LM35 temp sensor1 pin  	PANEL TEMP
 #define TempSensor2 A2   	// LM35 temp sensor2 pin	HOT AIR
@@ -31,4 +37,4 @@
 #define voltageOffset 0
 #define currentOffset 0
 
-#define light_max_Reading 900		// The adc value when full light
+#define light_max_Reading 900		// The adc value when full light MAX = 1023
