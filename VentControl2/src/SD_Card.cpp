@@ -1,8 +1,11 @@
+#pragma once
+
 #include <Arduino.h>
 #include <SD.h>
+#include <RTClib.h>
 #include "nextionDisp.h"
 #include "settings.h"
-#include <RTClib.h>
+
 
 extern int M1Speed;
 extern float temp0C, temp1C, temp2C, temp3C, voltage, current;

@@ -9,15 +9,75 @@
 
 // Global Variables:
 extern bool enableSerialPrint, m1Running;
-extern float temp0C, temp1C, temp2C, temp3C, temp4C, voltage, current, tempDelta;
+extern float temp0C, temp1C, temp2C, temp3C, temp4C, voltage, current, tempDelta, derivate;
 extern float v0_1, v0_2, i0_1, i0_2;
 extern float temp0C_max, temp1C_max, temp2C_max, temp3C_max, temp4C_max, voltage_min, voltage_max, current_max, tempDelta_max;
 extern int M1Speed, light;
 extern float filteredSignal;
-//extern float t0sensorOffset, t1sensorOffset, t2sensorOffset, t3sensorOffset, voltageOffset, currentOffset;
 
 OneWire oneWirePin(outside_temp_pin);
 DallasTemperature sensors(&oneWirePin);
+
+class Sensors {
+	public:
+		float max = 0;
+		float min = 0;
+
+};
+
+
+
+class CTemp : public Sensors {
+	public:
+		CTemp(int pin){ }	// Constructor
+
+	private:
+
+
+	protected:
+
+
+
+};
+
+class DigitalTemp : public CTemp {
+	public:
+		DigitalTemp(int pin) { }
+	private:
+
+};
+
+class AnalogTemp : public CTemp {
+	public: 
+		int pin = 0;
+		AnalogTemp(int pin) { pin = this }
+
+	private:
+
+	    //************************  SENSOR 1 PANEL  ****************** 
+		// convert to celsius:
+		c = t1 * pinReference;				// Convert readings to mV
+		c = c / 1024.0;						
+		c = c / 0.01;
+		c = c + t1sensorOffset;
+		temp = round(c * 10.0) / 10.0;	// Round to 1 decimal. round() rounds decimal number to whole number. 
+
+
+		// Update max value
+		if (temp > max){
+			max = temp;
+		}
+
+
+
+};
+
+
+class VoltageSensor: public Sensors{
+
+	static const int mVperAmp = 10;	// 20A module
+
+};
 
 
 
@@ -26,7 +86,7 @@ void sensorRead(){
 
 	int smoothing = 10; 		// Sensor smoothing: number of times to read sensor value. 1 = no smoothing
 	int sDLY = 20;				// Smoothing delay
-	const int mVperAmp = 10;	// 20A module
+	
 
 	//**** VARIABLES *******
 	float c = 0;				// For calculation
@@ -99,8 +159,8 @@ void sensorRead(){
 		}   */
 		
 	// **** With OP-amp ****
-	/*
 		float gain=10.9395;
+	/*	
 		c = t0 * pinReference;				// Convert readings to mV
 		c = c / 1024.0;						
 		c = (c / 0.01)/gain;
@@ -114,20 +174,7 @@ void sensorRead(){
 		temp0C = sensors.requestTemperaturesByIndex(0);
 		
 		
-	//************************  SENSOR 1 PANEL  ****************** 
-		
-		// convert to celsius:
-		c = t1 * pinReference;				// Convert readings to mV
-		c = c / 1024.0;						
-		c = c / 0.01;
-		c = c + t1sensorOffset;
-		temp1C = round(c * 10.0) / 10.0;	// Round to 1 decimal. round() rounds decimal number to whole number. 
-
-
-		// Update max value
-		if (temp1C > temp1C_max){
-			temp1C_max = temp1C;
-		}
+	
 		
 	// ********************* SENSOR 2 HEATED AIR ****************** 
 		// convert to celsius:
@@ -218,7 +265,7 @@ void sensorRead(){
 
 	//	*********************** SERIAL PRINT ***************************
 	//  Message is formatted for use with Telemetry viewer. Use a layout2 in Telemetry folder.
-	// TODO add light sensor
+	// TODO: add light sensor
 	if (enableSerialPrint == 1){
 		
 		char outside_text[30];

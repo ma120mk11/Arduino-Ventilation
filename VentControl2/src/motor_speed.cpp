@@ -7,286 +7,149 @@
 
 extern int M1Speed;
 extern int M2Speed;
-extern int M1PWM;
+extern int PWM;
 extern int M2PWM;
-extern bool m1Running;
+extern bool isRunning;
 extern bool m2Running;
 
-void m1SetSpeed(int s){    
-	/*  Input desired motor speed value 0-5.
-		The function updates the following global variables: 
-		M1Speed, M1PWM
-			
-			Calls sysValUpdate() to update display
-			
-			
+class Motor {
+	public: 
+		Motor(){}    
+		/*  
+		Input desired motor speed value 0-5.
+		Calls sysValUpdate() to update display
 		It increases or decreases the motor speed gradually until it reaches the value.
-	*/
-	
-	
+		*/
 
-	// PWM SETTINGS :
-	
-	int s1 = 70;				// motor PWM value at setting 1
-	int s2 = 100;				// motor PWM value at setting 2
-	int s3 = 150;				// motor PWM value at setting 3
-	int s4 = 210;				// motor PWM value at setting 4
-	int s5 = 255;				// motor PWM value at setting 5
+		int speed;
+		int PWM;
+		bool isRunning;
+
+		// PWM SETTINGS :
+		static const int s1 = 70;				// motor PWM value at setting 1
+		static const int s2 = 100;				// motor PWM value at setting 2
+		static const int s3 = 150;				// motor PWM value at setting 3
+		static const int s4 = 210;				// motor PWM value at setting 4
+		static const int s5 = 255;				// motor PWM value at setting 5
+		int dly = 30;            				// How fast the motor goes from one value to another
 
 
-	
-	int dly = 30;            	// How fast the motor goes from value to another
+	void setSpeed(int s)
+	{
+		if ( s == 5 ){
+			speed = 5;                    // Update global variable
+			isRunning = 1;					// Update global variable	
+			sysValUpdate();                  // Updates Display
+			
+			while( PWM < s5){             
+				PWM=PWM+5;
+				analogWrite(Motor1, PWM);
+				delay(dly);                  // optional delay
+			}  
+			return;   
+		} // end of 5
 
-	
-	if ( s == 5 ){
-		M1Speed = 5;                    // Update global variable
-		m1Running = 1;					// Update global variable	
-		sysValUpdate();                  // Updates Display
 		
-		while( M1PWM < s5){             
-			M1PWM=M1PWM+5;
-			analogWrite(Motor1, M1PWM);
-			delay(dly);                  // optional delay
-		}  
-		return;   
-	} // end of 5
-
-	
-	if ( s == 4 ){
-		M1Speed = 4;
-		m1Running = 1;					// Update global variable		
-		sysValUpdate();
-		if(M1PWM > s4){                 // If current motor speed is higher, slow down
-			while( M1PWM > s4 ){
-				M1PWM=M1PWM-5;              // decrease speed by 5
-				analogWrite(Motor1, M1PWM);
-				delay(dly);                 //optional delay
+		if ( s == 4 ){
+			speed = 4;
+			isRunning = 1;					// Update global variable		
+			sysValUpdate();
+			if(PWM > s4){                 // If current motor speed is higher, slow down
+				while( PWM > s4 ){
+					PWM=PWM-5;              // decrease speed by 5
+					analogWrite(Motor1, PWM);
+					delay(dly);                 //optional delay
+				}
 			}
-		}
-		if(M1PWM < s4){                // if current speed is lower, speed up
-			while( M1PWM < s4){
-				M1PWM=M1PWM+5;              // increase speed by 5
-				analogWrite(Motor1, M1PWM);
-				delay(dly);                 //optional delay
+			if(PWM < s4){                // if current speed is lower, speed up
+				while( PWM < s4){
+					PWM=PWM+5;              // increase speed by 5
+					analogWrite(Motor1, PWM);
+					delay(dly);                 //optional delay
+				}
 			}
-		}
-		return;
-	} // end of 4
+			return;
+		} // end of 4
 
 
-	if ( s == 3 ){
-		M1Speed = 3;
-		m1Running = 1;					// Update global variable		
-		sysValUpdate();
-		if(M1PWM > s3){                 // If current motor speed is higher, slow down
-			while( M1PWM > s3 ){
-				M1PWM=M1PWM-5;              // decrease speed by 5
-				analogWrite(Motor1, M1PWM);
-				delay(dly);                  //optional delay
+		if ( s == 3 ){
+			speed = 3;
+			isRunning = 1;					// Update global variable		
+			sysValUpdate();
+			if(PWM > s3){                 // If current motor speed is higher, slow down
+				while( PWM > s3 ){
+					PWM=PWM-5;              // decrease speed by 5
+					analogWrite(Motor1, PWM);
+					delay(dly);                  //optional delay
+				}
 			}
-		}
-		if(M1PWM < s3){                // if current speed is lower, speed up
-			while( M1PWM < s3){
-				M1PWM=M1PWM+5;              // increase speed by 5
-				analogWrite(Motor1, M1PWM);
-				delay(dly);                  //optional delay
+			if(PWM < s3){                // if current speed is lower, speed up
+				while( PWM < s3){
+					PWM=PWM+5;              // increase speed by 5
+					analogWrite(Motor1, PWM);
+					delay(dly);                  //optional delay
+				}
 			}
-		}
-		return;  
-	} // end of 3
+			return;  
+		} // end of 3
 
 
-	if ( s == 2 ){
-		M1Speed = 2;
-		m1Running = 1;					// Update global variable		  
-		sysValUpdate();
-		if(M1PWM > s2){                 // If current motor speed is higher, slow down
-			while( M1PWM > s2 ){
-				M1PWM=M1PWM-5;              // decrease speed by 5
-				analogWrite(Motor1, M1PWM);
-				delay(dly);                 //optional delay
+		if ( s == 2 ){
+			speed = 2;
+			isRunning = 1;					// Update global variable		  
+			sysValUpdate();
+			if(PWM > s2){                 // If current motor speed is higher, slow down
+				while( PWM > s2 ){
+					PWM=PWM-5;              // decrease speed by 5
+					analogWrite(Motor1, PWM);
+					delay(dly);                 //optional delay
+				}
 			}
-		}
-		if(M1PWM < s2){                // if current speed is lower, speed up
-			while( M1PWM < s2){
-				M1PWM=M1PWM+5;              // increase speed by 5
-				analogWrite(Motor1, M1PWM);
-				delay(dly);                 //optional delay
+			if(PWM < s2){                // if current speed is lower, speed up
+				while( PWM < s2){
+					PWM=PWM+5;              // increase speed by 5
+					analogWrite(Motor1, PWM);
+					delay(dly);                 //optional delay
+				}
 			}
-		}
-		return;   
-	} // end of 2
-	
-
-	if ( s == 1 ){
-		M1Speed = 1;
-		m1Running = 1;					// Update global variable	
-		sysValUpdate();
-		if(M1PWM > s1){                 // If current motor speed is higher, slow down
-			while( M1PWM > s1 ){
-				M1PWM=M1PWM-5;              // decrease speed by 5
-				analogWrite(Motor1, M1PWM);
-				delay(dly);                  //optional delay
-			}
-		}
-		if(M1PWM < s1){                // if current speed is lower, speed up
-			while( M1PWM < s1){
-				M1PWM=M1PWM+5;              // increase speed by 5
-				analogWrite(Motor1, M1PWM);
-				delay(dly);                 //optional delay
-			}
-		}
-		return;
-	} // end of 1
-
-
-	if ( s == 0 ){
-		M1Speed = 0;                     // Update global variable
-		m1Running = 0;					// Update global variable	
-		sysValUpdate();
-			while( M1PWM > 15){            // Value after it goes to zero  
-				M1PWM=M1PWM-5;
-				analogWrite(Motor1, M1PWM);
-				delay(dly);                      // optional delay
-			}
-			M1PWM=0;
-			analogWrite(Motor1, M1PWM);
-		return;   
-	}
-} // END OF m1SetSpeed()
-
-
-void m2SetSpeed(int s){    
-	/*  Input desired motor speed value 0-5.
-	*  The function updates the following global variables: 
-	*      M2Speed, M2PWM
-			
-			Calls sysValUpdate() to update display
-			
-			
-		It increases or decreases the motor speed gradually until it reaches the value.
-	*/
-	
-	// PWM SETTINGS :
-	
-	int s1 = 70;				// motor PWM value at setting 1
-	int s2 = 100;				// motor PWM value at setting 2
-	int s3 = 150;				// motor PWM value at setting 3
-	int s4 = 210;				// motor PWM value at setting 4
-	int s5 = 255;				// motor PWM value at setting 5
-
-	int dly = 30;            	// How fast the motor goes from value to another
-
-	
-	if ( s == 5 ){
-		M2Speed = 5;                     	// Update global variable
-		sysValUpdate();                  	// Updates Display
-		
-		while( M2PWM < s5){             
-			M2PWM=M2PWM+5;
-			analogWrite(Motor2, M2PWM);
-			delay(dly);                    	// optional delay
-		}  
-		return;   
-	} // end of 5
-
-	
-	if ( s == 4 ){
-		M2Speed = 4;
-		sysValUpdate();
-		if(M2PWM > s4){                 	// If current motor speed is higher, slow down
-			while( M2PWM > s4 ){
-				M2PWM=M2PWM-5;              // decrease speed by 5
-				analogWrite(Motor2, M2PWM);
-				delay(dly);                 //optional delay
-			}
-		}
-		if(M2PWM < s4){                		// if current speed is lower, speed up
-			while( M2PWM < s4){
-				M2PWM=M2PWM+5;              // increase speed by 5
-				analogWrite(Motor2, M2PWM);
-				delay(dly);                 //optional delay
-			}
-		}
-		return;
-	} // end of 4
-
-
-	if ( s == 3 ){
-		M2Speed = 3;
-		sysValUpdate();
-		if(M2PWM > s3){                 	// If current motor speed is higher, slow down
-			while( M2PWM > s3 ){
-				M2PWM=M2PWM-5;              // decrease speed by 5
-				analogWrite(Motor2, M2PWM);
-				delay(dly);                  //optional delay
-			}
-		}
-		if(M2PWM < s3){                		// if current speed is lower, speed up
-			while( M2PWM < s3){
-				M2PWM=M2PWM+5;              // increase speed by 5
-				analogWrite(Motor2, M2PWM);
-				delay(dly);                  //optional delay
-			}
-		}
-		return;  
-	} // end of 3
-
-
-	if ( s == 2 ){
-		M2Speed = 2;
-		sysValUpdate();
-		if(M2PWM > s2){                 	// If current motor speed is higher, slow down
-			while( M2PWM > s2 ){
-				M2PWM=M2PWM-5;              // decrease speed by 5
-				analogWrite(Motor2, M2PWM);
-				delay(dly);                 //optional delay
-			}
-		}
-		if(M2PWM < s2){                		// if current speed is lower, speed up
-			while( M2PWM < s2){
-				M2PWM=M2PWM+5;              // increase speed by 5
-				analogWrite(Motor2, M2PWM);
-				delay(dly);                 //optional delay
-			}
-		}
-		return;   
+			return;   
 		} // end of 2
-	
-
-	if ( s == 1 ){
-		M2Speed = 1;
-		sysValUpdate();
-		if(M2PWM > s1){                 // If current motor speed is higher, slow down
-			while( M2PWM > s1 ){
-			M2PWM=M2PWM-5;              // decrease speed by 5
-			analogWrite(Motor2, M2PWM);
-			delay(dly);                  //optional delay
-			}
-		}
-		if(M2PWM < s1){                // if current speed is lower, speed up
-			while( M2PWM < s1){
-				M2PWM=M2PWM+5;              // increase speed by 5
-				analogWrite(Motor2, M2PWM);
-				delay(dly);                 //optional delay
-			}
-		}
-		return;
-	} // end of 1
-
-
-	if ( s == 0 ){
-		M2Speed = 0;                     // Update global variable
-		sysValUpdate();
-		while( M2PWM > 15){            // Value after it goes to zero  
-			M2PWM=M2PWM-5;
-			analogWrite(Motor2, M2PWM);
-			delay(dly);                      // optional delay
-		}
-		M2PWM=0;
-		analogWrite(Motor2, M2PWM);
-		return;   
-	}
 		
-} // END OF m2SetSpeed()
 
+		if ( s == 1 ){
+			speed = 1;
+			isRunning = 1;					// Update global variable	
+			sysValUpdate();
+			if(PWM > s1){                 // If current motor speed is higher, slow down
+				while( PWM > s1 ){
+					PWM=PWM-5;              // decrease speed by 5
+					analogWrite(Motor1, PWM);
+					delay(dly);                  //optional delay
+				}
+			}
+			if(PWM < s1){                // if current speed is lower, speed up
+				while( PWM < s1){
+					PWM=PWM+5;              // increase speed by 5
+					analogWrite(Motor1, PWM);
+					delay(dly);                 //optional delay
+				}
+			}
+			return;
+		} // end of 1
+
+
+		if ( s == 0 ){
+			speed = 0;                     // Update global variable
+			isRunning = 0;					// Update global variable	
+			sysValUpdate();
+				while( PWM > 15){            // Value after it goes to zero  
+					PWM=PWM-5;
+					analogWrite(Motor1, PWM);
+					delay(dly);                      // optional delay
+				}
+				PWM=0;
+				analogWrite(Motor1, PWM);
+			return;   
+		}
+	}
+};

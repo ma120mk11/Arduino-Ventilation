@@ -1,3 +1,4 @@
+#pragma once
 
 #include "Nextion.h"
 #include "nextionDisp.h"
@@ -10,6 +11,8 @@
 #include <SPI.h>
 #include <SD.h>
 #include <RTClib.h>
+
+Motor motor1;
 
 //*********************** SETTINGS ***************************
 bool enableSerialPrint = 0;		// Turn on/off printing sensor values to serial 1
@@ -43,6 +46,7 @@ float temp4C = 5.4;		  		// TempSensor4
 float voltage;					// Voltage sensor reading
 float current;					// 
 int light;
+float derivate;					// The derivate of panel temperature
 
 
 float v0_1 = 0;					// Previous voltage reading
@@ -136,14 +140,11 @@ DS1302 rtc(rtc_RST, rtc_SCL, rtc_IO);
 	// Spring Heating MODE
 		NexButton springExit = NexButton(6,1,"springExit");		// Exit spring mode
 
-
 	//	spring_sett1 - SPRING SETTINGS
 		NexButton Dec_Utemp = NexButton(7,5,"Dec_Utemp");	// Upper temp DECREASE
 		NexButton Inc_Utemp = NexButton(7,7,"Inc_Utemp");	// Upper temp INCREASE
 		NexButton Dec_Ltemp = NexButton(7,6,"Dec_Ltemp");
 		NexButton Inc_Ltemp = NexButton(7,8,"Inc_Ltemp");
-
-		//NexDSButton btallow2m = NexDSButton(10,13,"btallow2m");	  // Allow 2 motors att the same time?
 		
 	// 9 - Sensor_data
 		
@@ -271,7 +272,7 @@ NexTouch *nex_listen_list[] = {
 
 	// 1-button release function
 		void bMS1PopCallback(void *ptr){
-			m1SetSpeed(1);                		// Sets motor speed
+			motor1.setSpeed(1);                		// Sets motor speed
 			dbSerialPrintln("Page4-Button-1");
 		}
 		
@@ -428,9 +429,6 @@ void setup() {
 		Serial.println("Time and date adjusted");
 	}
 
-	//TODO comment
-	//rtc.adjust(DateTime(__DATE__,"14:42:30"));
-
 
 	SD_Card_INIT();
 	
@@ -541,13 +539,17 @@ void loop() {
 		SD_log(date, time);
 
 
+
 		loop_timer_1min = millis();
 	}
 
 	// Once every day
 	if(now.day() != prevDay){
 		
-
+		/**
+		 * TODO:
+		 * Create a day summary and save it in a day report .csv file
+		*/
 
 		// Update nextion clock:
 		nextion_update("rtc2=", now.day());
