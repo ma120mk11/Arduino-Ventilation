@@ -1,38 +1,32 @@
 #include <Arduino.h>
 #include "Nextion.h"
-
-extern int M1PWM, M2PWM;               
-extern int M1Speed, M2Speed;           
+#include "sensor.h"
+#include "motor_speed.h"
+#include "settings.h"
+         
 extern bool m1Running, sendToNextion;
+extern Motor motor1(MOTOR1);
+extern Motor motor2(MOTOR2);
+extern DigitalTemp	t_Outside(T_OUTSIDE);
+extern AnalogTemp 	t_Panel(T_PANEL);
+extern AnalogTemp 	t_HeatedAir(T_AIR);
+extern AnalogTemp	t_Inside(T_LIVINGROOM);
+extern CurrentSensor current(CURRENT);
+extern VoltageSensor voltage(VOLTAGE);
 
-extern float temp0C;					  
-extern float temp1C;					
-extern float temp2C;					 
-extern float temp3C;					
-extern float temp4C;		  	
-extern float voltage;
 extern int light;
 
 extern float v0_1;
 extern float v0_2;
-
-extern float current;			
+	
 
 extern float i0_1;
 extern float i0_2;				
 
 extern float filteredSignal;
 
-extern float temp0C_max;		
-extern float temp1C_max;			
-extern float temp2C_max;			
-extern float temp3C_max;			
-extern float temp4C_max;
-extern float voltage_min;			
-extern float voltage_max;
-extern float current_max;
-extern float tempDelta_max;
 
+extern float tempDelta_max;
 extern float tempDelta;			
 
 extern int nextionPage;			
@@ -42,7 +36,6 @@ extern int voltageErrorCount;
 extern bool errorPending, enableHeating;
 
 extern int nexUpload;
-
 
 extern int tempUpper, tempLower;
 
@@ -84,16 +77,16 @@ void sysValUpdate(){
 		return;
 	}
 	// Current motor speeds
-  	nextion_update("data.M1.val=", M1Speed);
-  	nextion_update("data.M2.val=", M2Speed);
+  	nextion_update("data.M1.val=", motor1.speed());
+  	nextion_update("data.M2.val=", motor2.speed());
 
 	// Sensor data:
-	int t0 = temp0C*10.0;
-	int t1 = temp1C*10.0;
-	int t2 = temp2C*10.0;
-	int t3 = temp3C*10.0;
-	int v = voltage*10.0;
-	int i = current*10.0;
+	int t0 = t_Outside.value() 	* 10.0;
+	int t1 = t_Panel.value() 	* 10.0;
+	int t2 = t_HeatedAir.value()* 10.0;
+	int t3 = t_Inside.value() 	* 10.0;
+	int v = voltage.value() * 10.0;
+	int i = current.value() * 10.0;
 	int tDelta = tempDelta*10.0;
 	
 	nextion_update("data.T0.val=", t0);
@@ -111,13 +104,13 @@ void sysValUpdate(){
 void NEXsensor_maxUpdate(){
 	// Updates recorded sensor max values to nextion
 	
-	int t0_max = temp0C_max*10;
-	int t1_max = temp1C_max*10;
-	int t2_max = temp2C_max*10;
-	int t3_max = temp3C_max*10;
-	int v_max = voltage_max*10;
-	int v_min = voltage_min*10;
-	int i_max = current_max*10;
+	int t0_max = motor1.getMax()* 10;
+	int t1_max = t_Outside.max 	* 10;
+	int t2_max = t_Panel.max	* 10;
+	int t3_max = t_HeatedAir.max* 10;
+	int v_max = voltage.max		* 10;
+	int v_min = voltage.min 	* 10;
+	int i_max = current.max 	* 10;
 	
 	nextion_update("sensor_top.t0_top.val=", t0_max);
 	nextion_update("sensor_top.t1_top.val=", t1_max);

@@ -5,10 +5,16 @@
 #include <RTClib.h>
 #include "nextionDisp.h"
 #include "settings.h"
+#include "motor_speed.h"
+#include "sensor.h"
 
-
-extern int M1Speed;
-extern float temp0C, temp1C, temp2C, temp3C, voltage, current;
+extern Motor motor1;
+extern DigitalTemp	t_Outside(T_OUTSIDE);
+extern AnalogTemp 	t_Panel(T_PANEL);
+extern AnalogTemp 	t_HeatedAir(T_AIR);
+extern AnalogTemp	t_Inside(T_LIVINGROOM);
+extern CurrentSensor current(CURRENT);
+extern VoltageSensor voltage(VOLTAGE);
 
 bool sd_errorFlag = 0;
 bool unmountedFlag = 0;
@@ -31,7 +37,7 @@ void SD_Card_INIT(){
 		return;
 	}
 
-	Serial.println("card initialized.");
+	Serial.println("SD Card initialized.");
 	
 	// DATALOG
 
@@ -84,19 +90,19 @@ void SD_log(String date, String time){
 		dataString += ",";
 		dataString += time;
 		dataString += ",";
-		dataString += String(temp0C);
+		dataString += String(t_Outside.value);
 		dataString += ",";
-		dataString += String(temp1C);
+		dataString += String(t_Panel.value);
 		dataString += ",";
-		dataString += String(temp2C);
+		dataString += String(t_HeatedAir.value);
 		dataString += ",";
-		dataString += String(temp3C);
+		dataString += String(t_Inside.value);
 		dataString += ",";
 		dataString += String(voltage);
 		dataString += ",";
 		dataString += String(current);
 		dataString += ",";
-		dataString += String(M1Speed);
+		dataString += String(motor1.speed());
 	
 		
 		// open the file. note that only one file can be open at a time,
@@ -124,7 +130,7 @@ void SD_log(String date, String time){
 	}
 }
 
-void SD_unmount(){
+void SD_unmount() {
 	SD.end();
 	unmountedFlag = 1;		// Notify that the card was unmounted
 	nextion_update("sd_card_sett.sdStatus.txt=", "Unmounted");
