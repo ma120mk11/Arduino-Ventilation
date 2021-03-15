@@ -15,8 +15,6 @@
 //extern int M1Speed, light;
 //extern float filteredSignal;
 
-
-
 class Sensor {
 	public:
 		float value = 0;
@@ -30,7 +28,7 @@ class Sensor {
 		virtual void read() =0;
 
 		void setPin(int rPin) { pin = rPin; }
-
+		float value() { return value; }
 		void resetMinMax(){ 
 			min = value; 
 			max = value; 
@@ -89,8 +87,13 @@ class DigitalTemp : public Sensor {
 
 
 	public:
-		DigitalTemp();
-		DigitalTemp(int rPin) { pin = rPin; }
+		DigitalTemp() {
+			unit = "Celsius";
+		}
+		DigitalTemp(int rPin) { 
+			pin = rPin; 
+			unit = "Celsius";
+		}
 
 		void setIndex(int rIndex) { index = rIndex; }
 
@@ -114,7 +117,6 @@ class AnalogTemp : public AnalogSensor {
 
 		bool opAmp = false;
 		float gain = 10.9395;		// For sensors with opAmps
-		 		
 
 		void read() {
 			int adc = doAdc(pin);
@@ -149,9 +151,11 @@ class VoltageSensor: public AnalogSensor {
 };
 
 class CurrentSensor: public AnalogSensor {
-	private:
-		static const int mVperAmp = 10;		// 20A module
+	
 	public:
+		CurrentSensor();
+		CurrentSensor(int rPin) { pin = rPin; }
+
 		void read() {
 			int adc = doAdc(pin);
 			float temp = (adc * pinReference / 1024.0);
@@ -161,6 +165,8 @@ class CurrentSensor: public AnalogSensor {
 			newValue(temp);
 			//current = c 	//round(c * 10.0) / 10.0;
 		}
+	private:
+		static const int mVperAmp = 10;		// 20A module
 };
 
 /*		
