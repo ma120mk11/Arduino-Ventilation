@@ -1,5 +1,18 @@
 
-// Functions
+/*  
+Speed value 0-5.
+Calls sysValUpdate() to update display
+It increases or decreases the motor speed gradually until it reaches the value.
+*/
 
-class Motor;
-//void m2SetSpeed(int s);
+class Motor{
+    public:
+        Motor();
+        Motor(int pin);
+        void setSpeed(int);
+        int speed();
+        void setPin(int);
+        int getMax();
+    private:
+
+};
