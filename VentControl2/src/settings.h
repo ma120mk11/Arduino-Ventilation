@@ -2,8 +2,8 @@
 
 // USE TX2 for Nextion display communication
 
-#define Motor1 9            // motor1 pin HEATED AIR
-#define Motor2 10			// motor2 pin DIRECT AIR
+#define MOTOR1 9            // motor1 pin HEATED AIR
+#define MOTOR2 10			// motor2 pin DIRECT AIR
 
 #define outside_temp_pin 52 // DS18B20 digital temperature sensor
 /**
@@ -11,13 +11,13 @@
  */
 
 
-#define TempSensor0 A4		// LM35 temp sensor0 pin	OUTSIDE TEMP
-#define TempSensor1 A1   	// LM35 temp sensor1 pin  	PANEL TEMP
-#define TempSensor2 A2   	// LM35 temp sensor2 pin	HOT AIR
-#define TempSensor3 A3   	// LM35 temp sensor3 pin	LIVING ROOM
+#define T_OUTSIDE A4		// LM35 temp sensor0 pin	OUTSIDE TEMP
+#define T_PANEL A1   	// LM35 temp sensor1 pin  	PANEL TEMP
+#define T_AIR A2   	// LM35 temp sensor2 pin	HOT AIR
+#define T_LIVINGROOM A3   	// LM35 temp sensor3 pin	LIVING ROOM
 #define TempSensor4 A5 
-#define CurrentSensor A7    // Current sensor pin
-#define VoltageSensor A8    // Voltage sensor pin
+#define CURRENT A7    // Current sensor pin
+#define VOLTAGE A8    // Voltage sensor pin
 #define LightSensorPin A9   // Light sensor pin
 
 #define chipSelect 53		// pin for SD card chip select (see SD_card.h)
@@ -38,3 +38,15 @@
 #define currentOffset 0
 
 #define light_max_Reading 900		// The adc value when full light MAX = 1023
+
+
+//********************** ERROR SETTINGS ***************************
+float e_voltageThr = 10.7;    	// If voltage goes under this value, send error message
+
+
+// *****************  THINGSPEAK **********************
+#define CHANNEL_ID 1327374
+#define CHANNEL_API_KEY SYJB15HBTE9V8CWR
+
+const char *ssid = "HUAWEI P20 Pro";
+const char *pass = "3665d14cd73b";
