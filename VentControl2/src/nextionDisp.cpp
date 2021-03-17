@@ -1,43 +1,4 @@
-#include <Arduino.h>
-#include "Nextion.h"
-#include "sensor.h"
-#include "motor_speed.h"
-#include "settings.h"
-         
-extern bool m1Running, sendToNextion;
-extern Motor motor1;
-extern Motor motor2;
-extern DigitalTemp	t_Outside;
-extern AnalogTemp 	t_Panel;
-extern AnalogTemp 	t_HeatedAir;
-extern AnalogTemp	t_Inside;
-extern CurrentSensor current;
-extern VoltageSensor voltage;
-
-extern int light;
-
-extern float v0_1;
-extern float v0_2;
-	
-
-extern float i0_1;
-extern float i0_2;				
-
-extern float filteredSignal;
-
-
-extern float tempDelta_max;
-extern float tempDelta;			
-
-extern int nextionPage;			
-extern int nextionMode;				
-
-extern int voltageErrorCount;	
-extern bool errorPending, enableHeating;
-
-extern int nexUpload;
-
-extern int tempUpper, tempLower;
+#include "nextionDisp.h"
 
 
 void nextion_goToPage(String page){
@@ -87,7 +48,7 @@ void sysValUpdate(){
 	int t3 = t_Inside.getValue() 	* 10.0;
 	int v  = voltage.getValue() 	* 10.0;
 	int i  = current.getValue() 	* 10.0;
-	int tDelta = tempDelta			*10.0;
+	int tDelta = tempDelta			* 10.0;
 	
 	nextion_update("data.T0.val=", t0);
 	nextion_update("data.T1.val=", t1);
@@ -103,7 +64,6 @@ void sysValUpdate(){
 
 void NEXsensor_maxUpdate(){
 	// Updates recorded sensor max values to nextion
-	
 	int t0_max = motor1.getMax()* 10;
 	int t1_max = t_Outside.max 	* 10;
 	int t2_max = t_Panel.max	* 10;

@@ -1,3 +1,4 @@
+#include "filter.h"
 
 float filter(float i, float n, float d, float a){
 	// a is smoothing factor( normally 0 - 1 )

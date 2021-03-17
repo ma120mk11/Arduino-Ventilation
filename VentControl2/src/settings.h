@@ -1,3 +1,5 @@
+#ifndef SETTINGS_H
+#define SETTINGS_H
 //************************    PINS    *********************************
 
 // USE TX2 for Nextion display communication
@@ -55,3 +57,5 @@ const char *pass = "3665d14cd73b";
 #define ONE_SEC 1000
 #define THREE_SEC 3000
 #define ONE_MIN 60000
+
+#endif

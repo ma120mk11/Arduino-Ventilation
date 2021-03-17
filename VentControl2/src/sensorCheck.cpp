@@ -1,20 +1,4 @@
-#include <Arduino.h>
-#include "motor_speed.h"
-#include "sensor.h"
-#include "Nextion.h"
-
-// Global variables
-
-extern VoltageSensor voltage;
-extern Motor motor1;
-extern Motor motor2;
-extern float e_voltageThr;
-extern bool enableHeating;
-extern int voltageErrorCount;
-extern bool errorPending;
-extern void sensorRead();
-
-extern NexTouch *nex_listen_list[];
+#include "sensorCheck.h"
 
 void sensorCheck(){
 	// '********************** VOLTAGE CHECK ****************************************

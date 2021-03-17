@@ -1,23 +1,4 @@
-//#pragma once
-
-#include <Arduino.h>
-#include <SD.h>
-#include <RTClib.h>
-#include "nextionDisp.h"
-#include "settings.h"
-#include "motor_speed.h"
-#include "sensor.h"
-
-extern Motor motor1;
-extern DigitalTemp	t_Outside;
-extern AnalogTemp 	t_Panel;
-extern AnalogTemp 	t_HeatedAir;
-extern AnalogTemp	t_Inside;
-extern CurrentSensor current;
-extern VoltageSensor voltage;
-
-bool sd_errorFlag = 0;
-bool unmountedFlag = 0;
+#include "SD_Card.h"
 
 // Headers to the CSV files:
 String headers = "date,time,outside,panel,heated-air,room,voltage,current,motorSpeed";		// datalog.csv
