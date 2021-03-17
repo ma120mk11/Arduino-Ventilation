@@ -51,8 +51,6 @@ int tempLower = 30;				// At which temp to stop motor
 int autoCyckle = 20;			// Number of times to read value over threshold before action
 
 
-
-
 // ********************** VARIABLES **************************
 
 
@@ -75,7 +73,6 @@ float tempDelta_max;
 
 float tempDelta;				// How much the temperature is increased when flowing through panel
 
-
 int nextionPage;				// the page that is currently active
 int nextionMode;				// the active mode
 
@@ -86,8 +83,6 @@ int nexUpload = 0;				//
 
 int n = autoCyckle;
 int k = autoCyckle;
-
-
 
 
 
@@ -374,7 +369,13 @@ NexTouch *nex_listen_list[] = {
 	
 	// Top values reset button
 		void ResetPopCallback(void *ptr){
-			sensor_maxReset();
+			t_Outside.resetMinMax();
+			t_Panel.resetMinMax();
+			t_HeatedAir.resetMinMax();
+			t_Inside.resetMinMax();
+			voltage.resetMinMax();
+			current.resetMinMax();
+
 			NEXsensor_maxUpdate();
 		}
 	// Top values update button
@@ -449,14 +450,12 @@ void setup() {
 		Serial.println("Time and date adjusted");
 	}
 
-
-	SD_Card_INIT();
-	
+	SD_Card_INIT();	
 
 	springHeat.attachPop(springHeatPopCallback, &springHeat); // MENU
-	setTime.attachPop(setTimePopCallback, &setTime);  // Page 3
+	setTime.attachPop(setTimePopCallback, &setTime);  			// Page 3
 	
-	bMS1.attachPop(bMS1PopCallback, &bMS1);       // Page 4
+	bMS1.attachPop(bMS1PopCallback, &bMS1);       				// Page 4
 	bMS2.attachPop(bMS2PopCallback, &bMS2);
 	bMS3.attachPop(bMS3PopCallback, &bMS3);
 	bMS4.attachPop(bMS4PopCallback, &bMS4);
@@ -464,7 +463,7 @@ void setup() {
 	bMS0.attachPop(bMS0PopCallback, &bMS0);
 	bM2.attachPop(bM2PopCallback, &bM2);
 	
-	bM2S1.attachPop(bM2S1PopCallback, &bM2S1);      // Page 5
+	bM2S1.attachPop(bM2S1PopCallback, &bM2S1);      			// Page 5
 	bM2S2.attachPop(bM2S2PopCallback, &bM2S2);
 	bM2S3.attachPop(bM2S3PopCallback, &bM2S3);
 	bM2S4.attachPop(bM2S4PopCallback, &bM2S4);
@@ -486,10 +485,10 @@ void setup() {
 	v_err_exit.attachPop(v_err_exitPopCallback, & v_err_exit);
 	ignore.attachPop(ignorePopCallback, &ignore);
 	
-	v_errDec.attachPop(v_errDecPopCallback, &v_errDec);     // page 15 - settings 2
+	v_errDec.attachPop(v_errDecPopCallback, &v_errDec);     	// page 15 - settings 2
 	v_errInc.attachPop(v_errIncPopCallback, &v_errInc);
-	// Page 21
-	sd_init.attachPop(sd_initPopCallback, &sd_init);
+	
+	sd_init.attachPop(sd_initPopCallback, &sd_init);			// Page 21
 	sd_unmount.attachPop(sd_unmountPopCallback, &sd_unmount);
 
 	// *** Update NEXTION start values ***
@@ -497,11 +496,8 @@ void setup() {
 	NEXsensor_maxUpdate();
 	
 	// Update voltage thr
-	int thr = e_voltageThr*10;
+	int thr = e_voltageThr * 10;
 	nextion_update("settings_2.v_err.val=", thr);
-
-
-	
 
 } // END OF SETUP
 
@@ -510,20 +506,15 @@ unsigned long loop_timer_1s;
 unsigned long loop_timer_3s;
 unsigned long loop_timer_1min;
 
-//##############################################      MAIN       ############################################################
+//**********************************************   MAIN     ********************************************//
 void loop() {
 
   /**
    * TODO:
    * - Periodically run the motor for a specified time automatically. 
-   * - Send a "ok" package to display every minute. If display doesn't get the "ok" message, display error message
-   * - Set display time once a day. To prevent drifts.
    * - Store settings in EEPROM
 	*/
    
-   	#define ONE_SEC 1000
-	#define THREE_SEC 3000
-	#define ONE_MIN 60000
 
 	DateTime now = rtc.now();
 
@@ -534,8 +525,6 @@ void loop() {
 
 	// Once every second:
 	if((millis() - loop_timer_1s) > ONE_SEC){
-
-
 
 
 		loop_timer_1s = millis();		// Reset timer
@@ -560,8 +549,17 @@ void loop() {
 
 		SD_log(date, time);
 
-		ThingSpeak.setField(1,t_Outside.value);
-		t_Outside.value();
+		ThingSpeak.setField(1,t_Outside.value());
+		ThingSpeak.setField(2,t_Panel.value());
+		ThingSpeak.setField(3,t_HeatedAir.value());
+		ThingSpeak.setField(4,t_Inside.value());
+		ThingSpeak.setField(5,voltage.value());
+		ThingSpeak.setField(6,current.value());
+		ThingSpeak.setField(7,t_Outside.value());	// Implement
+		ThingSpeak.setField(8,t_Outside.value());	// Implement
+
+		ThingSpeak.writeFields(CHANNEL_ID,CHANNEL_API_KEY);
+		
 		loop_timer_1min = millis();
 	}
 
@@ -569,9 +567,10 @@ void loop() {
 	if(now.day() != prevDay){
 
 		// Update nextion clock:
-		nextion_update("rtc2=", now.day());
-		nextion_update("rtc1=", now.month());
+
 		// TODO //nextion_update("rtc0.val=", now.year());
+		nextion_update("rtc1=", now.month());
+		nextion_update("rtc2=", now.day());
 		nextion_update("rtc3=", now.hour());
 		nextion_update("rtc4=", now.minute());
 

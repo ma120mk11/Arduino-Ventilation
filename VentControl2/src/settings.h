@@ -12,12 +12,12 @@
 
 
 #define T_OUTSIDE A4		// LM35 temp sensor0 pin	OUTSIDE TEMP
-#define T_PANEL A1   	// LM35 temp sensor1 pin  	PANEL TEMP
-#define T_AIR A2   	// LM35 temp sensor2 pin	HOT AIR
+#define T_PANEL A1   	    // LM35 temp sensor1 pin  	PANEL TEMP
+#define T_AIR A2   	        // LM35 temp sensor2 pin	HOT AIR
 #define T_LIVINGROOM A3   	// LM35 temp sensor3 pin	LIVING ROOM
 #define TempSensor4 A5 
-#define CURRENT A7    // Current sensor pin
-#define VOLTAGE A8    // Voltage sensor pin
+#define CURRENT A7          // Current sensor pin
+#define VOLTAGE A8          // Voltage sensor pin
 #define LightSensorPin A9   // Light sensor pin
 
 #define chipSelect 53		// pin for SD card chip select (see SD_card.h)
@@ -46,7 +46,12 @@ float e_voltageThr = 10.7;    	// If voltage goes under this value, send error m
 
 // *****************  THINGSPEAK **********************
 #define CHANNEL_ID 1327374
-#define CHANNEL_API_KEY SYJB15HBTE9V8CWR
+#define CHANNEL_API_KEY "SYJB15HBTE9V8CWR"
 
 const char *ssid = "HUAWEI P20 Pro";
 const char *pass = "3665d14cd73b";
+
+
+#define ONE_SEC 1000
+#define THREE_SEC 3000
+#define ONE_MIN 60000

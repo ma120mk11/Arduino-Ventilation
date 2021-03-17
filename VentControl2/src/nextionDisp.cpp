@@ -85,9 +85,9 @@ void sysValUpdate(){
 	int t1 = t_Panel.value() 	* 10.0;
 	int t2 = t_HeatedAir.value()* 10.0;
 	int t3 = t_Inside.value() 	* 10.0;
-	int v = voltage.value() * 10.0;
-	int i = current.value() * 10.0;
-	int tDelta = tempDelta*10.0;
+	int v  = voltage.value() 	* 10.0;
+	int i  = current.value() 	* 10.0;
+	int tDelta = tempDelta		*10.0;
 	
 	nextion_update("data.T0.val=", t0);
 	nextion_update("data.T1.val=", t1);
@@ -108,9 +108,9 @@ void NEXsensor_maxUpdate(){
 	int t1_max = t_Outside.max 	* 10;
 	int t2_max = t_Panel.max	* 10;
 	int t3_max = t_HeatedAir.max* 10;
-	int v_max = voltage.max		* 10;
-	int v_min = voltage.min 	* 10;
-	int i_max = current.max 	* 10;
+	int v_max  = voltage.max	* 10;
+	int v_min  = voltage.min 	* 10;
+	int i_max  = current.max 	* 10;
 	
 	nextion_update("sensor_top.t0_top.val=", t0_max);
 	nextion_update("sensor_top.t1_top.val=", t1_max);

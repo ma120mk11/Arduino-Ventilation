@@ -9,10 +9,10 @@ class Motor{
     public:
         Motor();
         Motor(int pin);
-        void setSpeed(int);
-        int speed();
-        void setPin(int);
-        int getMax();
+        void setSpeed(int); // 
+        int speed();        // Returns the current motor speed (int)
+        void setPin(int);   
+        int getMax();       // @TODO: Not implemented
     private:
 
 };

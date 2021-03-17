@@ -1,34 +1,36 @@
 #include "motor_speed.h"
+#include "sensor.h"
 
 extern bool enableHeating;
-extern float temp1C;
-extern float temp2C;
 extern int tempUpper;
 extern int tempLower;
-extern int M1Speed;
 extern int autoCyckle;
 extern int n;
 extern int k;
+extern Motor motor1;
+extern DigitalTemp t_Outside;
+extern AnalogTemp t_Panel;
+extern AnalogTemp t_HeatedAir;
 
 void heating(){
 	// Check if heating is enabled
 	if (enableHeating == 1)
 	{
-		if (temp1C > tempUpper){
+		if (t_Panel.value > tempUpper){
 			n--;
 			if(n<=0){
-				m1SetSpeed(5);
+				motor1.setSpeed(5);
 				n=autoCyckle;
 			}
 		}
 
-		if (temp1C < tempUpper){
+		if (t_Panel.value < tempUpper){
 			n=autoCyckle;
 		}
 	  
-		if (temp2C < tempLower && M1Speed==5){
+		if (t_HeatedAir.value < tempLower && motor1.speed() == 5 ) {
 			if(k<=0){
-				m1SetSpeed(0);
+				motor1.setSpeed(0);
 				k=autoCyckle;
 			}
 			else{
@@ -36,7 +38,7 @@ void heating(){
 			}
 		}
 	  
-		if (temp2C > tempLower && M1Speed==5){
+		if (t_HeatedAir.value > tempLower && motor1.speed() == 5 ) {
 			k=autoCyckle;
 		}
 	}

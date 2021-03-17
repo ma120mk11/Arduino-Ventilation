@@ -2,9 +2,6 @@
 #include "nextionDisp.h"
 //#include "settings.h"
 
-
-
-
 class Motor {
 	private:
 		int speed;
@@ -19,8 +16,6 @@ class Motor {
 		int speed() { return speed; }
 		int getMax(){ return max; }
 		bool isRunning = 0;
-
-
 
 		// PWM SETTINGS :
 		static const int s1 = 70;				// motor PWM value at setting 1

@@ -23,7 +23,6 @@ class Sensor {
 		float offset= 0;
 		int pin 	= 0;
 
-
 		String unit = "";
 		virtual void read() =0;
 
@@ -56,7 +55,6 @@ class Sensor {
 	private:
 		float values[10];
 
-		
 };
 
 
@@ -80,11 +78,7 @@ class AnalogSensor : public Sensor {
 		}
 };
 
-
-
-
 class DigitalTemp : public Sensor {
-
 
 	public:
 		DigitalTemp() {
