@@ -10,7 +10,7 @@ class Motor{
         Motor();
         Motor(int pin);
         void setSpeed(int); // 
-        int speed();        // Returns the current motor speed (int)
+        int getSpeed();        // Returns the current motor speed (int)
         void setPin(int);   
         int getMax();       // @TODO: Not implemented
     private:

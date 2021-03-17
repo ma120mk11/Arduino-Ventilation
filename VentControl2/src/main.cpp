@@ -1,4 +1,4 @@
-#pragma once
+//#pragma once
 
 #include "Nextion.h"
 #include "nextionDisp.h"
@@ -86,6 +86,15 @@ int k = autoCyckle;
 
 
 
+void sensorRead() {
+		t_Outside.read();
+		t_Panel.read();
+		t_HeatedAir.read();
+		t_Inside.read();
+		voltage.read();
+		current.read();
+}
+
 
 //#########################         NEXTION               #############################
 
@@ -169,6 +178,7 @@ int k = autoCyckle;
 		NexButton sd_unmount = NexButton(21,4,"sd_unmount");
 		NexButton sd_init = NexButton(21,5,"sd_init");
 
+
 // ************* Register button objects to the touch event list. *****************
 NexTouch *nex_listen_list[] = {
    // Page 0 menu
@@ -251,7 +261,7 @@ NexTouch *nex_listen_list[] = {
      * TODO:
      * Get the values that are set on the display and update RTC.
      */
-    int setDay, setMonth, setYear, setHour, setMinute;
+    //int setDay, setMonth, setYear, setHour, setMinute;
 	
 
 
@@ -269,7 +279,7 @@ NexTouch *nex_listen_list[] = {
 
 
 
-// ************MANUAL - page 4 **************
+	// ************MANUAL - page 4 **************
 
 	// 1-button release function
 		void bMS1PopCallback(void *ptr){
@@ -303,7 +313,7 @@ NexTouch *nex_listen_list[] = {
 				motor1.setSpeed(0);
 			}	
 		}
-// ************   MANUAL Motor 2 - page 5 **************
+	// ************   MANUAL Motor 2 - page 5 **************
 
 	// 1-button release function
 		void bM2S1PopCallback(void *ptr){
@@ -418,6 +428,7 @@ NexTouch *nex_listen_list[] = {
 		void sd_initPopCallback(void *ptr){
 			SD_Card_INIT();
 		}
+
 
 void WifiInit() {
 	if(!wifi.begin(10.11)){
@@ -549,14 +560,14 @@ void loop() {
 
 		SD_log(date, time);
 
-		ThingSpeak.setField(1,t_Outside.value());
-		ThingSpeak.setField(2,t_Panel.value());
-		ThingSpeak.setField(3,t_HeatedAir.value());
-		ThingSpeak.setField(4,t_Inside.value());
-		ThingSpeak.setField(5,voltage.value());
-		ThingSpeak.setField(6,current.value());
-		ThingSpeak.setField(7,t_Outside.value());	// Implement
-		ThingSpeak.setField(8,t_Outside.value());	// Implement
+		ThingSpeak.setField(1,t_Outside.getValue());
+		ThingSpeak.setField(2,t_Panel.getValue());
+		ThingSpeak.setField(3,t_HeatedAir.getValue());
+		ThingSpeak.setField(4,t_Inside.getValue());
+		ThingSpeak.setField(5,voltage.getValue());
+		ThingSpeak.setField(6,current.getValue());
+		ThingSpeak.setField(7,t_Outside.getValue());	// Implement
+		ThingSpeak.setField(8,t_Outside.getValue());	// Implement
 
 		ThingSpeak.writeFields(CHANNEL_ID,CHANNEL_API_KEY);
 		
@@ -576,4 +587,7 @@ void loop() {
 
 		prevDay = now.day();			// Reset logic
 	}
+
+
+	
 }

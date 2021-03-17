@@ -28,7 +28,7 @@ void heating(){
 			n=autoCyckle;
 		}
 	  
-		if (t_HeatedAir.value < tempLower && motor1.speed() == 5 ) {
+		if (t_HeatedAir.value < tempLower && motor1.getSpeed() == 5 ) {
 			if(k<=0){
 				motor1.setSpeed(0);
 				k=autoCyckle;
@@ -38,7 +38,7 @@ void heating(){
 			}
 		}
 	  
-		if (t_HeatedAir.value > tempLower && motor1.speed() == 5 ) {
+		if (t_HeatedAir.value > tempLower && motor1.getSpeed() == 5 ) {
 			k=autoCyckle;
 		}
 	}

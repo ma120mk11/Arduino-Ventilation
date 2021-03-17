@@ -5,26 +5,29 @@
 
 // Global variables
 
-extern float voltage;
+extern VoltageSensor voltage;
+extern Motor motor1;
+extern Motor motor2;
 extern float e_voltageThr;
 extern bool enableHeating;
 extern int voltageErrorCount;
 extern bool errorPending;
+extern void sensorRead();
 
 extern NexTouch *nex_listen_list[];
 
 void sensorCheck(){
 	// '********************** VOLTAGE CHECK ****************************************
 	// If voltage is under threshold, wait 20 min.
-	if (voltage < e_voltageThr){
+	if (voltage.value < e_voltageThr){
 		
 		// Wait and check again
 		delay(500);
 		sensorRead();
-		if(voltage < e_voltageThr){
+		if(voltage.value < e_voltageThr){
 			
-			m1SetSpeed(0);
-			m2SetSpeed(0);
+			motor1.setSpeed(0);
+			motor2.setSpeed(0);
 			
 			voltageErrorCount++;
 			errorPending = 1;

@@ -1,4 +1,4 @@
-#pragma once
+//#pragma once
 
 #include <Arduino.h>
 #include <SD.h>
@@ -9,12 +9,12 @@
 #include "sensor.h"
 
 extern Motor motor1;
-extern DigitalTemp	t_Outside(T_OUTSIDE);
-extern AnalogTemp 	t_Panel(T_PANEL);
-extern AnalogTemp 	t_HeatedAir(T_AIR);
-extern AnalogTemp	t_Inside(T_LIVINGROOM);
-extern CurrentSensor current(CURRENT);
-extern VoltageSensor voltage(VOLTAGE);
+extern DigitalTemp	t_Outside;
+extern AnalogTemp 	t_Panel;
+extern AnalogTemp 	t_HeatedAir;
+extern AnalogTemp	t_Inside;
+extern CurrentSensor current;
+extern VoltageSensor voltage;
 
 bool sd_errorFlag = 0;
 bool unmountedFlag = 0;
@@ -98,11 +98,11 @@ void SD_log(String date, String time){
 		dataString += ",";
 		dataString += String(t_Inside.value);
 		dataString += ",";
-		dataString += String(voltage);
+		dataString += String(voltage.value);
 		dataString += ",";
-		dataString += String(current);
+		dataString += String(current.value);
 		dataString += ",";
-		dataString += String(motor1.speed());
+		dataString += String(motor1.getSpeed());
 	
 		
 		// open the file. note that only one file can be open at a time,

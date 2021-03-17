@@ -13,7 +13,7 @@ class Motor {
 		Motor();
 		Motor(int pin) { output_pin = pin;}    
 		void setPin(int pin) { output_pin = pin; }
-		int speed() { return speed; }
+		int getSpeed() { return speed; }
 		int getMax(){ return max; }
 		bool isRunning = 0;
 

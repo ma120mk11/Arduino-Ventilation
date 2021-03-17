@@ -1,4 +1,4 @@
-#pragma once
+//#pragma once
 
 #include "filter.h"
 #include "settings.h"
@@ -27,15 +27,15 @@ class Sensor {
 		virtual void read() =0;
 
 		void setPin(int rPin) { pin = rPin; }
-		float value() { return value; }
+		float getValue() { return value; }
 		void resetMinMax(){ 
 			min = value; 
 			max = value; 
 		}
 
-		float direction(){
+		// float direction(){
 			
-		}
+		// }
 
 	protected:
 
@@ -117,10 +117,10 @@ class AnalogTemp : public AnalogSensor {
 			float temp = 0;
 			// convert to celsius:
 			if (!opAmp) {
-				float temp = ((adc * pinReference / 1024.0 ) / 0.01 ) + offset;
+				temp = ((adc * pinReference / 1024.0 ) / 0.01 ) + offset;
 			}
 			else {
-				float temp = ((adc * pinReference / 1024.0 ) / 0.01 ) / gain + offset;
+				temp = ((adc * pinReference / 1024.0 ) / 0.01 ) / gain + offset;
 			}
 
 			// Round to 1 decimal. round() rounds decimal number to whole number. 

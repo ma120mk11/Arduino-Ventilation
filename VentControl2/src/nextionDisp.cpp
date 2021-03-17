@@ -5,14 +5,14 @@
 #include "settings.h"
          
 extern bool m1Running, sendToNextion;
-extern Motor motor1(MOTOR1);
-extern Motor motor2(MOTOR2);
-extern DigitalTemp	t_Outside(T_OUTSIDE);
-extern AnalogTemp 	t_Panel(T_PANEL);
-extern AnalogTemp 	t_HeatedAir(T_AIR);
-extern AnalogTemp	t_Inside(T_LIVINGROOM);
-extern CurrentSensor current(CURRENT);
-extern VoltageSensor voltage(VOLTAGE);
+extern Motor motor1;
+extern Motor motor2;
+extern DigitalTemp	t_Outside;
+extern AnalogTemp 	t_Panel;
+extern AnalogTemp 	t_HeatedAir;
+extern AnalogTemp	t_Inside;
+extern CurrentSensor current;
+extern VoltageSensor voltage;
 
 extern int light;
 
@@ -77,17 +77,17 @@ void sysValUpdate(){
 		return;
 	}
 	// Current motor speeds
-  	nextion_update("data.M1.val=", motor1.speed());
-  	nextion_update("data.M2.val=", motor2.speed());
+  	nextion_update("data.M1.val=", motor1.getSpeed());
+  	nextion_update("data.M2.val=", motor2.getSpeed());
 
 	// Sensor data:
-	int t0 = t_Outside.value() 	* 10.0;
-	int t1 = t_Panel.value() 	* 10.0;
-	int t2 = t_HeatedAir.value()* 10.0;
-	int t3 = t_Inside.value() 	* 10.0;
-	int v  = voltage.value() 	* 10.0;
-	int i  = current.value() 	* 10.0;
-	int tDelta = tempDelta		*10.0;
+	int t0 = t_Outside.getValue() 	* 10.0;
+	int t1 = t_Panel.getValue() 	* 10.0;
+	int t2 = t_HeatedAir.getValue() * 10.0;
+	int t3 = t_Inside.getValue() 	* 10.0;
+	int v  = voltage.getValue() 	* 10.0;
+	int i  = current.getValue() 	* 10.0;
+	int tDelta = tempDelta			*10.0;
 	
 	nextion_update("data.T0.val=", t0);
 	nextion_update("data.T1.val=", t1);

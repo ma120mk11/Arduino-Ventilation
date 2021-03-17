@@ -6,12 +6,12 @@ class Sensor{
         float offset;
         int   pin;
 
-        String unit;
+        //String unit;
         virtual void read();
-        float value();          // Returns the last read value of the sensor
+        float getValue();          // Returns the last read value of the sensor
         void setPin(int);
         void resetMinMax();
-        float direction();
+       // float direction();
 
     protected:
         void newValue(float);
