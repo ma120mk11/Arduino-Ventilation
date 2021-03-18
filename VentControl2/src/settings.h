@@ -16,7 +16,6 @@
 #define T_PANEL A1   	    // LM35 temp sensor1 pin  	PANEL TEMP
 #define T_AIR A2   	        // LM35 temp sensor2 pin	HOT AIR
 #define T_LIVINGROOM A3   	// LM35 temp sensor3 pin	LIVING ROOM
-#define TempSensor4 A5 
 #define CURRENT A7          // Current sensor pin
 #define VOLTAGE A8          // Voltage sensor pin
 #define LightSensorPin A9   // Light sensor pin
