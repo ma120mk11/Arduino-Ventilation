@@ -19,4 +19,4 @@ Other features:
 - Nextion Touch Display inside the building for control and monitoring.
 - Sensor data is collected and sent to ThingsPeak for realtime data visualization.
 - Logs sensor data on an SD-Card
-- 
+- Completely off the grid
