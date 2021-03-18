@@ -13,13 +13,13 @@
 #include <CytronWiFiShield.h>
 #include <CytronWiFiClient.h>
 
-Motor motor1(MOTOR1);
-Motor motor2(MOTOR2);
+Motor motor1(MOTOR1);				// Heated air
+Motor motor2(MOTOR2);				// Cool air
 DigitalTemp	t_Outside(T_OUTSIDE);
 AnalogTemp 	t_Panel(T_PANEL);
 AnalogTemp 	t_HeatedAir(T_AIR);
 AnalogTemp	t_Inside(T_LIVINGROOM);
-CurrentSensor current(CURRENT);
+CurrentSensor current(CURRENT);		
 VoltageSensor voltage(VOLTAGE);
 
 ESP8266Client client;
@@ -51,29 +51,26 @@ int autoCyckle = 20;			// Number of times to read value over threshold before ac
 // ********************** VARIABLES **************************
 int light;
 float derivate;					// The derivate of panel temperature
-
 float tempDelta;				// How much the temperature is increased when flowing through panel
-
-int nextionPage;				// the page that is currently active
-int nextionMode;				// the active mode
 
 int voltageErrorCount = 0;		// 
 bool errorPending = 0;			//
 
+int nextionPage;				// the page that is currently active
+int nextionMode;				// the active mode
 int nexUpload = 0;				//
 
 int n = autoCyckle;
 int k = autoCyckle;
 
 
-
 void sensorRead() {
-		t_Outside.read();
-		t_Panel.read();
-		t_HeatedAir.read();
-		t_Inside.read();
-		voltage.read();
-		current.read();
+	t_Outside.read();
+	t_Panel.read();
+	t_HeatedAir.read();
+	t_Inside.read();
+	voltage.read();
+	current.read();
 }
 
 
@@ -419,9 +416,8 @@ void setup() {
 
 	SD_Card_INIT();	
 
-	springHeat.attachPop(springHeatPopCallback, &springHeat); // MENU
+	springHeat.attachPop(springHeatPopCallback, &springHeat); 	// MENU
 	setTime.attachPop(setTimePopCallback, &setTime);  			// Page 3
-	
 	bMS1.attachPop(bMS1PopCallback, &bMS1);       				// Page 4
 	bMS2.attachPop(bMS2PopCallback, &bMS2);
 	bMS3.attachPop(bMS3PopCallback, &bMS3);
@@ -429,7 +425,6 @@ void setup() {
 	bMS5.attachPop(bMS5PopCallback, &bMS5);
 	bMS0.attachPop(bMS0PopCallback, &bMS0);
 	bM2.attachPop(bM2PopCallback, &bM2);
-	
 	bM2S1.attachPop(bM2S1PopCallback, &bM2S1);      			// Page 5
 	bM2S2.attachPop(bM2S2PopCallback, &bM2S2);
 	bM2S3.attachPop(bM2S3PopCallback, &bM2S3);
@@ -437,24 +432,18 @@ void setup() {
 	bM2S5.attachPop(bM2S5PopCallback, &bM2S5);
 	bM2S0.attachPop(bM2S0PopCallback, &bM2S0);
 	bM1.attachPop(bM1PopCallback, &bM1);
-	
 	springExit.attachPop(springExitPopCallback, &springExit);   // PAGE 6 SPRING
-	
 	Dec_Utemp.attachPop(Dec_UtempPopCallback, &Dec_Utemp);
 	Inc_Utemp.attachPop(Inc_UtempPopCallback, &Inc_Utemp);
 	Dec_Ltemp.attachPop(Dec_LtempPopCallback, &Dec_Ltemp);
 	Inc_Ltemp.attachPop(Inc_LtempPopCallback, &Inc_Ltemp);
-	
 	Measure.attachPop(MeasurePopCallback, &Measure);
 	Reset.attachPop(ResetPopCallback, &Reset);
 	Update.attachPop(UpdatePopCallback, &Update);
-	
 	v_err_exit.attachPop(v_err_exitPopCallback, & v_err_exit);
 	ignore.attachPop(ignorePopCallback, &ignore);
-	
 	v_errDec.attachPop(v_errDecPopCallback, &v_errDec);     	// page 15 - settings 2
 	v_errInc.attachPop(v_errIncPopCallback, &v_errInc);
-	
 	sd_init.attachPop(sd_initPopCallback, &sd_init);			// Page 21
 	sd_unmount.attachPop(sd_unmountPopCallback, &sd_unmount);
 
@@ -513,6 +502,7 @@ void loop() {
 
 		SD_log(date, time);
 
+
 		ThingSpeak.setField(1,t_Outside.getValue());
 		ThingSpeak.setField(2,t_Panel.getValue());
 		ThingSpeak.setField(3,t_HeatedAir.getValue());
@@ -540,7 +530,4 @@ void loop() {
 
 		prevDay = now.day();			// Reset logic
 	}
-
-
-	
 }

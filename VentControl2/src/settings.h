@@ -12,7 +12,6 @@
  * Use a 10k resistor between signal and ???
  */
 
-
 #define T_OUTSIDE A4		// LM35 temp sensor0 pin	OUTSIDE TEMP
 #define T_PANEL A1   	    // LM35 temp sensor1 pin  	PANEL TEMP
 #define T_AIR A2   	        // LM35 temp sensor2 pin	HOT AIR

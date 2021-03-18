@@ -1,6 +1,6 @@
 #include "heating.h"
 
-void heating(){
+void heating() {
 	// Check if heating is enabled
 	if (enableHeating == 1)
 	{

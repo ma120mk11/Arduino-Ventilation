@@ -35,7 +35,6 @@ class Motor{
 
         bool isRunning = 0;
 
-    private:
 };
 
 #endif
