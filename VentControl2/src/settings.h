@@ -20,13 +20,22 @@
 #define VOLTAGE A8          // Voltage sensor pin
 #define LightSensorPin A9   // Light sensor pin
 
-#define chipSelect 53		// pin for SD card chip select (see SD_card.h)
-#define pinReference 5      // The measured value of +5V pin
+// Select which SD card reader is used:
+#define CYTRON_SD
+//#define EXTERNAL_SD
+
+#ifdef EXTERNAL_SD
+    #define chipSelect 53		// pin for SD card chip select (see SD_card.h)
+#endif
+
+#ifdef CYTRON_SD
+    #define chipSelect 4        // pin for SD card on Wifi shield
+#endif
 
 // pins for DS1302 RTC Module
-#define rtc_RST 8
-#define rtc_IO 7
-#define rtc_SCL 6
+#define RTC_RST 8
+#define RTC_IO 7
+#define RTC_SCL 6
 
 
 // ***************** SENSOR OFFSET **********************
@@ -39,7 +48,7 @@
 
 #define light_max_Reading 900		// The adc value when full light MAX = 1023
 
-
+#define pinReference 5      // The measured value of +5V pin
 // *****************  THINGSPEAK **********************
 #define CHANNEL_ID 1327374
 #define CHANNEL_API_KEY "SYJB15HBTE9V8CWR"
