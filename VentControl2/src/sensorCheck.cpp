@@ -1,15 +1,17 @@
+#include "sensorCheck.h"
+
 void sensorCheck(){
-// '********************** VOLTAGE CHECK ****************************************
-// If voltage is under threshold, wait 20 min.
-	if (voltage < e_voltageThr){
+	// '********************** VOLTAGE CHECK ****************************************
+	// If voltage is under threshold, wait 20 min.
+	if (voltage.value < e_voltageThr){
 		
 		// Wait and check again
 		delay(500);
 		sensorRead();
-		if(voltage < e_voltageThr){
+		if(voltage.value < e_voltageThr){
 			
-			m1SetSpeed(0);
-			m2SetSpeed(0);
+			motor1.setSpeed(0);
+			motor2.setSpeed(0);
 			
 			voltageErrorCount++;
 			errorPending = 1;
