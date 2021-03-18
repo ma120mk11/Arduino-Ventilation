@@ -11,10 +11,10 @@ String reportHeaders = "date,xxx,xxx,xxx";
 
 void SD_Card_INIT(){
 	Serial.print("Initializing SD card...");
-
+	
 	// see if the card is present and can be initialized:
 	if (!SD.begin(chipSelect)) {
-		Serial.println("Card failed, or not present");
+		Serial.println("card failed, or not present.");
 		// Send error message to nextion:
 		SD_Card_Error("SD card failed, or not present");
 		nextion_update("sd_card_sett.sdStatus.txt=", "Could not find SD card");
@@ -22,7 +22,7 @@ void SD_Card_INIT(){
 		return;
 	}
 
-	Serial.println("SD Card initialized.");
+	Serial.println("DONE.");
 	
 	// DATALOG
 
@@ -44,7 +44,6 @@ void SD_Card_INIT(){
 		nextion_update("data.sd_status.val=", 0);		// Update sd status
 	}
 
-
 	// ERROR LIST
 	exists = SD.exists("errorLog.csv");						// Check if file exists
 	File errorList = SD.open("errorlog.csv", FILE_WRITE);	// Open file
@@ -59,7 +58,6 @@ void SD_Card_INIT(){
 		nextion_update("sd_card_sett.sdStatus.txt=", "Could not open errorLog CSV file");
 		nextion_update("data.sd_status.val=", 0);			// Update sd status
 	}
-
 
 	unmountedFlag = 0;
 }

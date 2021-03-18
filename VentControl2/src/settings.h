@@ -4,13 +4,13 @@
 
 // USE TX2 for Nextion display communication
 
-#define MOTOR1 9            // motor1 pin HEATED AIR
-#define MOTOR2 10			// motor2 pin DIRECT AIR
+#define MOTOR1 12            // motor1 pin HEATED AIR
+#define MOTOR2 13			// motor2 pin DIRECT AIR
 
 #define outside_temp_pin 52 // DS18B20 digital temperature sensor
 /**
  * Use a 10k resistor between signal and ???
- */
+*/
 
 #define T_OUTSIDE A4		// LM35 temp sensor0 pin	OUTSIDE TEMP
 #define T_PANEL A1   	    // LM35 temp sensor1 pin  	PANEL TEMP
@@ -39,9 +39,6 @@
 #define currentOffset 0
 
 #define light_max_Reading 900		// The adc value when full light MAX = 1023
-
-
-
 
 
 // *****************  THINGSPEAK **********************

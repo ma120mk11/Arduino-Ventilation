@@ -30,14 +30,7 @@ ESP8266Client client;
 // Initialize rtc object
 DS1302 rtc(rtc_RST, rtc_SCL, rtc_IO);
 
-void readSensors() {
-	t_Outside.read();
-	t_Panel.read();
-	t_HeatedAir.read();
-	t_Inside.read();
-	current.read();
-	voltage.read();
-}
+
 
 //*********************** SETTINGS ***************************
 bool enableSerialPrint = 0;		// Turn on/off printing sensor values to serial 1
@@ -67,9 +60,14 @@ int nexUpload = 0;				//
 int n = autoCyckle;
 int k = autoCyckle;
 
-
-
-
+void readSensors() {
+	t_Outside.read();
+	t_Panel.read();
+	t_HeatedAir.read();
+	t_Inside.read();
+	current.read();
+	voltage.read();
+}
 
 //#########################         NEXTION               #############################
 
@@ -382,7 +380,8 @@ NexTouch *nex_listen_list[] = {
 
 
 void WifiInit() {
-	if(!wifi.begin(10.11)){
+	Serial.print("Initializing Wifi module...");
+	if(!wifi.begin(10,11)){
 		Serial.println("Cannot connect to WIFI module");
 	}
 
@@ -390,20 +389,21 @@ void WifiInit() {
   	{
     	Serial.println(F("Error connecting to WiFi"));
   	}
+	else{Serial.print("DONE\n");}
 }
 //**********************************************   SETUP     ********************************************//
 void setup() {													
 	Serial.begin(9600);
 	Serial2.begin(9600);
-
-	
+	delay(10);
+	Serial.println("Starting Setup...");
 	nexInit();							// Initialize nextion display
 	nextion_goToPage("ardu_restart");	// Notify the display that arduino was restarted
 	pinMode(MOTOR1, OUTPUT);           	// set motor as output
 	pinMode(MOTOR2, OUTPUT);           	// set motor as output
 	readSensors();
-
-	//ThingSpeak.begin(client);	
+	WifiInit();
+	ThingSpeak.begin(client);	
 
 	rtc.begin();
 	if(!rtc.isrunning()){
@@ -412,7 +412,7 @@ void setup() {
 		Serial.println("Time and date adjusted");
 	}
 
-	SD_Card_INIT();	
+	SD_Card_INIT();
 	
 	springHeat.attachPop(springHeatPopCallback, &springHeat); 	// MENU
 	setTime.attachPop(setTimePopCallback, &setTime);  			// Page 3
@@ -448,11 +448,10 @@ void setup() {
 	// *** Update NEXTION start values ***
 	NEXtempThrUpdate();
 	NEXsensor_maxUpdate();
-	
-	// Update voltage thr
 	int thr = e_voltageThr * 10;
 	nextion_update("settings_2.v_err.val=", thr);
-	
+
+	Serial.println("Setup Done.");
 } // END OF SETUP
 
 int prevDay;
@@ -469,7 +468,7 @@ void loop() {
    * - Store settings in EEPROM
 	*/
    
-	DateTime now = rtc.now();
+	//DateTime now = rtc.now();
 
 	// Every cycle:
 	nexLoop(nex_listen_list);
@@ -484,9 +483,9 @@ void loop() {
 	
 	// Once every 3 seconds
 	if((millis() - loop_timer_3s) > THREE_SEC){
-		readSensors();
-		heating();
-		sysValUpdate();
+		//readSensors();
+		//heating();
+		//sysValUpdate();
 
 
 		loop_timer_3s = millis();		// Reset timer
@@ -495,12 +494,12 @@ void loop() {
 	// once every minute
 	if(millis() - loop_timer_1min > ONE_MIN){
 
-		String date = String(now.day()) + "." + String(now.month()) + "." + String(now.year());
-		String time = String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second());
+		// String date = String(now.day()) + "." + String(now.month()) + "." + String(now.year());
+		// String time = String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second());
 
-		SD_log(date, time);
+		// SD_log(date, time);
 
-		
+		Serial.println("Sending to Thingspeak...");
 		ThingSpeak.setField(1,t_Outside.getValue());
 		ThingSpeak.setField(2,t_Panel.getValue());
 		ThingSpeak.setField(3,t_HeatedAir.getValue());
@@ -515,16 +514,16 @@ void loop() {
 	}
 
 	// Once every day
-	if(now.day() != prevDay){
+	// if(now.day() != prevDay){
 
-		// Update nextion clock:
+	// 	// Update nextion clock:
 
-		// TODO //nextion_update("rtc0.val=", now.year());
-		nextion_update("rtc1=", now.month());
-		nextion_update("rtc2=", now.day());
-		nextion_update("rtc3=", now.hour());
-		nextion_update("rtc4=", now.minute());
+	// 	// TODO //nextion_update("rtc0.val=", now.year());
+	// 	nextion_update("rtc1=", now.month());
+	// 	nextion_update("rtc2=", now.day());
+	// 	nextion_update("rtc3=", now.hour());
+	// 	nextion_update("rtc4=", now.minute());
 
-		prevDay = now.day();			// Reset logic
-	}
+	// 	prevDay = now.day();			// Reset logic
+	// }
 }

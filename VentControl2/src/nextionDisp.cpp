@@ -72,7 +72,7 @@ void NEXsensor_maxUpdate(){
 	int v_min  = voltage.min 	* 10;
 	int i_max  = current.max 	* 10;
 	
-	//nextion_update("sensor_top.t0_top.val=", t0_max);
+	nextion_update("sensor_top.t0_top.val=", t0_max);
 	nextion_update("sensor_top.t1_top.val=", t1_max);
 	nextion_update("sensor_top.t2_top.val=", t2_max);
 	nextion_update("sensor_top.t3_top.val=", t3_max);
