@@ -27,9 +27,7 @@ const char *pass = "3665d14cd73b";
 
 ESP8266Client client;
 
-// Initialize rtc object
-DS1302 rtc(rtc_RST, rtc_SCL, rtc_IO);
-
+DS1302 rtc(RTC_RST, RTC_SCL, RTC_IO);	// Initialize rtc object
 
 
 //*********************** SETTINGS ***************************
@@ -391,6 +389,7 @@ void WifiInit() {
   	}
 	else{Serial.print("DONE\n");}
 }
+
 //**********************************************   SETUP     ********************************************//
 void setup() {													
 	Serial.begin(9600);
