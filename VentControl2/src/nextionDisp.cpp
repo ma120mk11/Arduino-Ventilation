@@ -38,8 +38,8 @@ void sysValUpdate(){
 		return;
 	}
 	// Current motor speeds
-  	//nextion_update("data.M1.val=", motor1.getSpeed());
-  	//nextion_update("data.M2.val=", motor2.getSpeed());
+  	nextion_update("data.M1.val=", motor1.getSpeed());
+  	nextion_update("data.M2.val=", motor2.getSpeed());
 
 	// Sensor data:
 	int t0 = t_Outside.getValue() 	* 10.0;
@@ -64,7 +64,7 @@ void sysValUpdate(){
 
 void NEXsensor_maxUpdate(){
 	// Updates recorded sensor max values to nextion
-	//int t0_max = motor1.getMax()* 10;
+	int t0_max = motor1.getMax()* 10;
 	int t1_max = t_Outside.max 	* 10;
 	int t2_max = t_Panel.max	* 10;
 	int t3_max = t_HeatedAir.max* 10;

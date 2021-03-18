@@ -1,9 +1,6 @@
 #ifndef MOTOR_H
 #define MOTOR_H
 
-#include <Arduino.h>
-#include "nextionDisp.h"
-
 /*  
 Speed value 0-5.
 Calls sysValUpdate() to update display

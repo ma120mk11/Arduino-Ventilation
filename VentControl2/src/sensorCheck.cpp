@@ -1,8 +1,8 @@
 #include "sensorCheck.h"
 
 void sensorCheck(){
-	// '********************** VOLTAGE CHECK ****************************************
-	// If voltage is under threshold, wait 20 min.
+	//********************** VOLTAGE CHECK ****************************************
+	//If voltage is under threshold, wait 20 min.
 	if (voltage.value < e_voltageThr){
 		
 		// Wait and check again

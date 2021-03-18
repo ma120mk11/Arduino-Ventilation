@@ -41,18 +41,16 @@
 #define light_max_Reading 900		// The adc value when full light MAX = 1023
 
 
-//********************** ERROR SETTINGS ***************************
-float e_voltageThr = 10.7;    	// If voltage goes under this value, send error message
+
 
 
 // *****************  THINGSPEAK **********************
 #define CHANNEL_ID 1327374
 #define CHANNEL_API_KEY "SYJB15HBTE9V8CWR"
 
-const char *ssid = "HUAWEI P20 Pro";
-const char *pass = "3665d14cd73b";
 
 
+// ****************  LOOP FUNCTION *********************
 #define ONE_SEC 1000
 #define THREE_SEC 3000
 #define ONE_MIN 60000

@@ -19,17 +19,16 @@ Arduino Nano	11		12		13		10
 
 *************************************************************************/
 
-extern Motor motor1;
-extern DigitalTemp	t_Outside;
-extern AnalogTemp 	t_Panel;
-extern AnalogTemp 	t_HeatedAir;
-extern AnalogTemp	t_Inside;
-extern CurrentSensor current;
-extern VoltageSensor voltage;
+// extern Motor motor1;
+// extern DigitalTemp	t_Outside;
+// extern AnalogTemp 	t_Panel;
+// extern AnalogTemp 	t_HeatedAir;
+// extern AnalogTemp	t_Inside;
+// extern CurrentSensor current;
+// extern VoltageSensor voltage;
 
-bool sd_errorFlag = 0;
-bool unmountedFlag = 0;
-
+//bool sd_errorFlag;
+//bool unmountedFlag;
 
 void SD_Card_INIT();
 void SD_log(String date, String time);

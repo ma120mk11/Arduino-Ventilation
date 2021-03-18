@@ -1,5 +1,11 @@
 #include "sensor.h"
 
+//#include "filter.h"
+//#include "settings.h"
+
+#include <DallasTemperature.h>
+#include <OneWire.h>
+
 
 void Sensor::setPin(int rPin) { pin = rPin; }
 float Sensor::getValue() { return value; }
@@ -22,6 +28,7 @@ void Sensor::newValue(float val) {
 	if (val < min) min = val;
 }
 
+Sensor::~Sensor(){}
 
 int AnalogSensor::doAdc(int pin) {
 	int n = smoothing;

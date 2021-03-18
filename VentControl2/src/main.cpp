@@ -22,6 +22,9 @@ AnalogTemp	t_Inside(T_LIVINGROOM);
 CurrentSensor current(CURRENT);		
 VoltageSensor voltage(VOLTAGE);
 
+const char *ssid = "HUAWEI P20 Pro";
+const char *pass = "3665d14cd73b";
+
 ESP8266Client client;
 
 // Initialize rtc object
@@ -46,7 +49,8 @@ int tempUpper = 40;				// At which temperature to start motor
 int tempLower = 30;				// At which temp to stop motor
 
 int autoCyckle = 20;			// Number of times to read value over threshold before action
-
+//********************** ERROR SETTINGS ***************************
+float e_voltageThr = 10.7;    	// If voltage goes under this value, send error message
 
 // ********************** VARIABLES **************************
 int light;
@@ -64,14 +68,7 @@ int n = autoCyckle;
 int k = autoCyckle;
 
 
-void sensorRead() {
-	t_Outside.read();
-	t_Panel.read();
-	t_HeatedAir.read();
-	t_Inside.read();
-	voltage.read();
-	current.read();
-}
+
 
 
 //#########################         NEXTION               #############################
@@ -227,7 +224,7 @@ NexTouch *nex_listen_list[] = {
 		 * TODO:
 		 * Get the values that are set on the display and update RTC.
 		 */
-		//int setDay, setMonth, setYear, setHour, setMinute;
+		
 		
 		DateTime now = rtc.now();
 		// Update nextion clock:
@@ -236,6 +233,7 @@ NexTouch *nex_listen_list[] = {
 		// TODO //nextion_update("rtc0.val=", now.year());
 		nextion_update("rtc3=", now.hour());
 		nextion_update("rtc4=", now.minute());
+		
 	}
 
 
@@ -405,7 +403,7 @@ void setup() {
 	pinMode(MOTOR2, OUTPUT);           	// set motor as output
 	readSensors();
 
-	ThingSpeak.begin(client);	
+	//ThingSpeak.begin(client);	
 
 	rtc.begin();
 	if(!rtc.isrunning()){
@@ -415,7 +413,7 @@ void setup() {
 	}
 
 	SD_Card_INIT();	
-
+	
 	springHeat.attachPop(springHeatPopCallback, &springHeat); 	// MENU
 	setTime.attachPop(setTimePopCallback, &setTime);  			// Page 3
 	bMS1.attachPop(bMS1PopCallback, &bMS1);       				// Page 4
@@ -454,7 +452,7 @@ void setup() {
 	// Update voltage thr
 	int thr = e_voltageThr * 10;
 	nextion_update("settings_2.v_err.val=", thr);
-
+	
 } // END OF SETUP
 
 int prevDay;
@@ -502,7 +500,7 @@ void loop() {
 
 		SD_log(date, time);
 
-
+		
 		ThingSpeak.setField(1,t_Outside.getValue());
 		ThingSpeak.setField(2,t_Panel.getValue());
 		ThingSpeak.setField(3,t_HeatedAir.getValue());
@@ -511,7 +509,6 @@ void loop() {
 		ThingSpeak.setField(6,current.getValue());
 		ThingSpeak.setField(7,t_Outside.getValue());	// Implement
 		ThingSpeak.setField(8,t_Outside.getValue());	// Implement
-
 		ThingSpeak.writeFields(CHANNEL_ID,CHANNEL_API_KEY);
 		
 		loop_timer_1min = millis();

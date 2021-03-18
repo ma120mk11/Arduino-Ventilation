@@ -7,13 +7,10 @@
 #include "Motor.h"
 #include "settings.h"
 
-#pragma once
-
-//class Motor;
 
 extern bool sendToNextion;
-//extern Motor motor1;
-//extern Motor motor2;
+extern Motor motor1;
+extern Motor motor2;
 extern DigitalTemp	t_Outside;
 extern AnalogTemp 	t_Panel;
 extern AnalogTemp 	t_HeatedAir;

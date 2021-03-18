@@ -1,5 +1,9 @@
 #include "SD_Card.h"
 
+bool sd_errorFlag = 0;
+bool unmountedFlag = 0;
+
+
 // Headers to the CSV files:
 String headers = "date,time,outside,panel,heated-air,room,voltage,current,motorSpeed";		// datalog.csv
 String errorHeaders = "date,time,error";
