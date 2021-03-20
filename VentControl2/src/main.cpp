@@ -29,21 +29,19 @@ ESP8266Client client;
 
 DS1302 rtc(RTC_RST, RTC_SCL, RTC_IO);	// Initialize rtc object
 
-
-//*********************** SETTINGS ***************************
+//***********************  SETTINGS  ***************************
 bool enableSerialPrint = 0;		// Turn on/off printing sensor values to serial 1
 bool sendToNextion 	= 1;		// Turn on/off sending sensor values to nextion (serial 2)
 bool allow2motors 	= 0;		// Nextion setting, set default value here
 bool enableHeating 	= 1;		// Enable AUTO setting for motor 1
-
 int tempUpper = 40;				// At which temperature to start motor
 int tempLower = 30;				// At which temp to stop motor
 
 			
-//********************** ERROR SETTINGS ***************************
+//********************** ERROR SETTINGS **************************
 float e_voltageThr = 10.7;    	// If voltage goes under this value, send error message
 
-// ********************** VARIABLES **************************
+// **********************  VARIABLES  ****************************
 float derivate;					// The derivate of panel temperature
 float tempDelta;				// How much the temperature is increased when flowing through panel
 
@@ -54,7 +52,22 @@ int nextionPage;				// the page that is currently active
 int nextionMode;				// the active mode
 int nexUpload = 0;				//
 
+int prevDay;
+unsigned long loop_timer_1s;
+unsigned long loop_timer_3s;
+unsigned long loop_timer_1min;
 
+void WifiInit() {
+	DBPRINT("Initializing Wifi module...");
+	if(!wifi.begin(10,11)){
+		DBPRINT_LN(F("cannot connect to WIFI module."));
+	}
+	if(!wifi.connectAP(ssid, pass))
+  	{
+    	DBPRINT_LN(F("Error connecting to WiFi"));
+  	}
+	else{ DBPRINT("DONE\n"); }
+}
 
 void readSensors() {
 	t_Outside.read();
@@ -63,6 +76,9 @@ void readSensors() {
 	t_Inside.read();
 	current.read();
 	voltage.read();
+
+	tempDelta = t_HeatedAir.value - t_Outside.value;
+
 }
 
 #pragma region nextion
@@ -83,26 +99,20 @@ void readSensors() {
 	* NexVariable - Variable inside the nextion display
 	* NexPage - Page touch event
 	* NexRtc - To use the real time clock for Enhanced Nextion displays
-	*/
-	
+*/
 // PAGE 0 - menu
-
 // MENU - Page 0
 	NexButton springHeat = NexButton(0,4,"springHeat");
-
-
 // Set Time
 	NexButton setTime = NexButton(3,17,"setTime");
-
 //  MANUAL MOTOR 1 - Page 4
-	NexButton bMS1 = NexButton(4,1,"bMS1");                 // Button 1
-	NexButton bMS2 = NexButton(4,2,"bMS2");                 // Button 2
-	NexButton bMS3 = NexButton(4,3,"bMS3");                 // Button 3
-	NexButton bMS4 = NexButton(4,4,"bMS4");                 // Button 4
-	NexButton bMS5 = NexButton(4,5,"bMS5");                 // Button 5
-	NexButton bMS0 = NexButton(4,6,"bMS0");                 // Button OFF
-	NexButton bM2  = NexButton(4,12,"bM2");				  	// Change to motor 2 (page 5)
-
+	NexButton bMS1 = NexButton(4,1,"bMS1");             // Button 1
+	NexButton bMS2 = NexButton(4,2,"bMS2");             // Button 2
+	NexButton bMS3 = NexButton(4,3,"bMS3");             // Button 3
+	NexButton bMS4 = NexButton(4,4,"bMS4");             // Button 4
+	NexButton bMS5 = NexButton(4,5,"bMS5");             // Button 5
+	NexButton bMS0 = NexButton(4,6,"bMS0");             // Button OFF
+	NexButton bM2  = NexButton(4,12,"bM2");				// Change to motor 2 (page 5)
 //  MANUAL MOTOR 2 - Page 5
 	NexButton bM2S1 = NexButton(5,1,"bM2S1");           // Button 1
 	NexButton bM2S2 = NexButton(5,2,"bM2S2");           // Button 2
@@ -111,31 +121,24 @@ void readSensors() {
 	NexButton bM2S5 = NexButton(5,5,"bM2S5");           // Button 5
 	NexButton bM2S0 = NexButton(5,6,"bM2S0");           // Button OFF
 	NexButton bM1	= NexButton(5,11,"bM1");			// Change to motor 1 (page 4)
-
 // Spring Heating MODE
-	NexButton springExit = NexButton(6,1,"springExit");		// Exit spring mode
-
+	NexButton springExit = NexButton(6,1,"springExit");	// Exit spring mode
 //	spring_sett1 - SPRING SETTINGS
 	NexButton Dec_Utemp = NexButton(7,5,"Dec_Utemp");	// Upper temp DECREASE
 	NexButton Inc_Utemp = NexButton(7,7,"Inc_Utemp");	// Upper temp INCREASE
 	NexButton Dec_Ltemp = NexButton(7,6,"Dec_Ltemp");
 	NexButton Inc_Ltemp = NexButton(7,8,"Inc_Ltemp");
-	
 // 9 - Sensor_data
 	NexButton Measure = NexButton(9,22,"Measure");
-	
 // 10 - sensor_top
 	NexButton Reset = NexButton(10,22,"Reset");			// Reset top_values
 	NexButton Update = NexButton(10,25,"Update");
-
 // 14 Voltage Error
 	NexButton v_err_exit = NexButton(14,6,"v_err_exit");// Exit mode
 	NexButton ignore = NexButton(14,3,"ignore");		// Ignore error	
-
 // 15 - Settings 2
 	NexButton v_errDec = NexButton(15,3,"v_errDec");
 	NexButton v_errInc = NexButton(15,4,"v_errInc");
-
 // 21 - sd_card_sett
 	NexButton sd_unmount = NexButton(21,4,"sd_unmount");
 	NexButton sd_init = NexButton(21,5,"sd_init");
@@ -145,15 +148,10 @@ void readSensors() {
 NexTouch *nex_listen_list[] = {
 // Page 0 menu
 	&springHeat,
-
-	
 // Page 1
-
 // Page 2
-
 // Page 3
 	&setTime,
-
 // Manual Page 4
 	&bMS1,
 	&bMS2,
@@ -162,7 +160,6 @@ NexTouch *nex_listen_list[] = {
 	&bMS5,
 	&bMS0,
 	&bM2,
-
 // Manual Page 5
 	&bM2S1,
 	&bM2S2,
@@ -171,46 +168,38 @@ NexTouch *nex_listen_list[] = {
 	&bM2S5,
 	&bM2S0,
 	&bM1,
-
 // spring mode page 6
 	&springExit,
-
 // spring_sett1
 	&Dec_Utemp,
 	&Inc_Utemp,
 	&Dec_Ltemp,
 	&Inc_Ltemp,
-	
 // Settings Page 10
-
 // sensor_data
 	&Measure,
-	
 // sensor_top
 	&Reset,
 	&Update,
 // 14 Voltage Error
 	&v_err_exit,
 	&ignore,
-
 // 15 - settings 2
 	&v_errDec,
 	&v_errInc,
-
 // 21 sd_card_sett
 	&sd_unmount,
 	&sd_init,	
 NULL
 };
 
-
 //*****************************    DISPLAY BUTTON FUNCTIONS   ********************************************
 
 // ********** MENU **********
 void springHeatPopCallback(void *ptr){
 	enableHeating = 1;
-	Serial.print("Enabled Heating on display. enableHeating = ");
-	Serial.println(enableHeating);
+	DBPRINT("Enabled Heating on display. enableHeating = ");
+	DBPRINT_LN(enableHeating);
 }
 
 void setTimePopCallback(void *ptr){
@@ -227,12 +216,9 @@ void setTimePopCallback(void *ptr){
 	// TODO //nextion_update("rtc0.val=", now.year());
 	nextion_update("rtc3=", now.hour());
 	nextion_update("rtc4=", now.minute());
-	
 }
 
-
 // ************MANUAL - page 4 **************
-
 // 1-button release function
 	void bMS1PopCallback(void *ptr){
 		motor1.setSpeed(1);                		// Sets motor speed
@@ -337,7 +323,6 @@ void setTimePopCallback(void *ptr){
 	void UpdatePopCallback(void *ptr){
 		NEXsensor_maxUpdate();
 	}
-	
 // Update sensors
 	void MeasurePopCallback(void *ptr){
 		readSensors();
@@ -351,66 +336,59 @@ void setTimePopCallback(void *ptr){
 	void ignorePopCallback(void *ptr){
 		errorPending=0;
 	}
-
 // 15 - settings 2
 	void v_errDecPopCallback(void *ptr){
 		e_voltageThr -= 0.1;
 		int thr = e_voltageThr*10;
 		nextion_update("settings_2.v_err.val=", thr);
 	}
-	
 	void v_errIncPopCallback(void *ptr){
 		e_voltageThr += 0.1;
 		int thr = e_voltageThr*10;
 		nextion_update("settings_2.v_err.val=", thr);
 	}
-
 // page 21 sd_card_sett
 	void sd_unmountPopCallback(void *ptr){
 		SD_unmount();
 	}
-
 	void sd_initPopCallback(void *ptr){
 		SD_Card_INIT();
 	}
 #pragma endregion nextion
 
-void WifiInit() {
-	Serial.print("Initializing Wifi module...");
-	if(!wifi.begin(10,11)){
-		Serial.println("Cannot connect to WIFI module");
-	}
-
-	if(!wifi.connectAP(ssid, pass))
-  	{
-    	Serial.println(F("Error connecting to WiFi"));
-  	}
-	else{Serial.print("DONE\n");}
-}
 
 //**********************************************   SETUP     ********************************************//
 void setup() {													
 	Serial.begin(9600);
 	Serial2.begin(9600);
-	delay(10);
-	Serial.println("Starting Setup...");
-	nexInit();							// Initialize nextion display
-	nextion_goToPage("ardu_restart");	// Notify the display that arduino was restarted
+	delay(100);
+	DBPRINT_LN("Starting Setup...");
+	#ifdef NEXTION
+		DBPRINT("Initializing nextion display...");
+		nexInit();							// Initialize nextion display
+		nextion_goToPage("ardu_restart");	// Notify the display that arduino was restarted
+		nextion_update("settings_2.v_err.val=", e_voltageThr*10);
+		DBPRINT_LN("DONE");
+	#endif
+	
 	pinMode(MOTOR1, OUTPUT);           	// set motor as output
 	pinMode(MOTOR2, OUTPUT);           	// set motor as output
 	readSensors();
-	WifiInit();
-	ThingSpeak.begin(client);	
-
-	rtc.begin();
-	if(!rtc.isrunning()){
-		Serial.print("RTC is not running. ");
-		rtc.adjust(DateTime(__DATE__,__TIME__));
-		Serial.println("Time and date adjusted");
-	}
-
 	SD_Card_INIT();
-	
+
+	#ifdef THINGSPEAK
+		WifiInit();
+		ThingSpeak.begin(client);	
+	#endif
+	DBPRINT("Initializing RTC...");
+	rtc.begin();
+	if(!rtc.isrunning()) {
+		DBPRINT("RTC is not running...");
+		rtc.adjust(DateTime(__DATE__,__TIME__));
+		DBPRINT_LN("time and date adjusted.");
+	} else DBPRINT_LN("DONE");
+
+	#pragma region nextion_setup
 	springHeat.attachPop(springHeatPopCallback, &springHeat); 	// MENU
 	setTime.attachPop(setTimePopCallback, &setTime);  			// Page 3
 	bMS1.attachPop(bMS1PopCallback, &bMS1);       				// Page 4
@@ -441,35 +419,31 @@ void setup() {
 	v_errInc.attachPop(v_errIncPopCallback, &v_errInc);
 	sd_init.attachPop(sd_initPopCallback, &sd_init);			// Page 21
 	sd_unmount.attachPop(sd_unmountPopCallback, &sd_unmount);
+	#pragma endregion nextion_setup
 
-	// *** Update NEXTION start values ***
+	// Update nextion start values
 	NEXtempThrUpdate();
 	NEXsensor_maxUpdate();
-	int thr = e_voltageThr * 10;
-	nextion_update("settings_2.v_err.val=", thr);
 
-	Serial.println("Setup Done.");
+	DBPRINT_LN("Setup Done.");
 } // END OF SETUP
 
-int prevDay;
-unsigned long loop_timer_1s;
-unsigned long loop_timer_3s;
-unsigned long loop_timer_1min;
 
 //**********************************************   MAIN     ********************************************//
 void loop() {
-
-  /**
-   * TODO:
-   * - Periodically run the motor for a specified time automatically. 
-   * - Store settings in EEPROM
-   * - What happens if RTC card fails?
+	/**
+	* TODO:
+	* - Periodically run the motor for a specified time automatically. 
+	* - Store settings in EEPROM
+	* - What happens if RTC card fails?
 	*/
    
 	//DateTime now = rtc.now();
 
 	// Every cycle:
-	nexLoop(nex_listen_list);
+	#ifdef NEXTION
+		nexLoop(nex_listen_list);
+	#endif
 
 	// Once every second:
 	if((millis() - loop_timer_1s) > ONE_SEC){
@@ -477,7 +451,6 @@ void loop() {
 
 		loop_timer_1s = millis();		// Reset timer
 	}
-
 	
 	// Once every 3 seconds
 	if((millis() - loop_timer_3s) > THREE_SEC){
@@ -491,23 +464,30 @@ void loop() {
 
 	// once every minute
 	if(millis() - loop_timer_1min > ONE_MIN){
-
 		// String date = String(now.day()) + "." + String(now.month()) + "." + String(now.year());
 		// String time = String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second());
 
 		// SD_log(date, time);
-
-		Serial.println("Sending to Thingspeak...");
-		ThingSpeak.setField(1,t_Outside.getValue());
-		ThingSpeak.setField(2,t_Panel.getValue());
-		ThingSpeak.setField(3,t_HeatedAir.getValue());
-		ThingSpeak.setField(4,t_Inside.getValue());
-		ThingSpeak.setField(5,voltage.getValue());
-		ThingSpeak.setField(6,current.getValue());
-		ThingSpeak.setField(7,t_Outside.getValue());	// Implement
-		ThingSpeak.setField(8,t_Outside.getValue());	// Implement
-		ThingSpeak.writeFields(CHANNEL_ID,CHANNEL_API_KEY);
 		
+		DBPRINT("Sending to Thingspeak...");
+		
+		#ifdef THINGSPEAK
+			ThingSpeak.setField(1,t_Outside.getValue());
+			ThingSpeak.setField(2,t_Panel.getValue());
+			ThingSpeak.setField(3,t_HeatedAir.getValue());
+			ThingSpeak.setField(4,t_Inside.getValue());
+			ThingSpeak.setField(5,voltage.getValue());
+			ThingSpeak.setField(6,current.getValue());
+			ThingSpeak.setField(7,t_Outside.getValue());	// Implement
+			ThingSpeak.setField(8,t_Outside.getValue());	// Implement
+			ThingSpeak.writeFields(CHANNEL_ID,CHANNEL_API_KEY);
+		#endif
+
+		#ifdef DEBUG
+			if(ThingSpeak.getStatus() == "") DBPRINT_LN("ERROR");
+			else DBPRINT_LN("DONE");
+		#endif
+
 		loop_timer_1min = millis();
 	}
 

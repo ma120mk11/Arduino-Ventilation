@@ -10,22 +10,21 @@ String errorHeaders = "date,time,error";
 String reportHeaders = "date,xxx,xxx,xxx";
 
 void SD_Card_INIT() {
-	Serial.print("Initializing SD card...");
+	DBPRINT("Initializing SD card...");
 
 	// see if the card is present and can be initialized:
 	if (!SD.begin(chipSelect)) {
-		Serial.println("card failed, or not present.");
+		DBPRINT_LN("card failed, or not present.");
 		// Send error message to nextion:
 		SD_Card_Error("SD card failed, or not present");
 		nextion_update("sd_card_sett.sdStatus.txt=", "Could not find SD card");
 		nextion_update("data.sd_status.val=", 0);		// Update sd status
 		return;
 	}
-
-	Serial.println("DONE.");
+	else DBPRINT_LN("DONE.");
 	
 	// DATALOG
-
+	
 	bool exists = SD.exists("datalog.csv");				// Check if file already exists
 	File dataFile = SD.open("datalog.csv", FILE_WRITE);	// Open file
 
@@ -38,7 +37,7 @@ void SD_Card_INIT() {
 	}
 	// if the file isn't open, pop up an error:
 	else {
-		Serial.println("error opening datalog.csv");
+		DBPRINT_LN("error opening datalog.csv");
 		SD_Card_Error("error opening datalog.csv");
 		nextion_update("sd_card_sett.sdStatus.txt=", "Could not open CSV file");
 		nextion_update("data.sd_status.val=", 0);		// Update sd status
@@ -53,7 +52,7 @@ void SD_Card_INIT() {
 		errorList.close();
 	}
 	else{
-		Serial.println("error opening errorlog.csv");
+		DBPRINT_LN("error opening errorlog.csv");
 		SD_Card_Error("error opening errorLog.csv");
 		nextion_update("sd_card_sett.sdStatus.txt=", "Could not open errorLog CSV file");
 		nextion_update("data.sd_status.val=", 0);			// Update sd status
@@ -102,7 +101,7 @@ void SD_log(String date, String time){
 		// if the file isn't open, pop up an error:
 		else {
 			if(sd_errorFlag == 0){
-				Serial.println("error opening datalog.csv");
+				DBPRINT_LN("error opening datalog.csv");
 				SD_Card_Error("Could not write to csv file");
 				nextion_update("sd_card_sett.sdStatus.txt=", "Could not write to csv file");
 				nextion_update("data.sd_status.val=", 0);		// Update sd status
@@ -117,6 +116,6 @@ void SD_unmount() {
 	SD.end();
 	unmountedFlag = 1;		// Notify that the card was unmounted
 	nextion_update("sd_card_sett.sdStatus.txt=", "Unmounted");
-	Serial.println("Unmounted SD card");
+	DBPRINT_LN("Unmounted SD card");
 	nextion_update("data.sd_status.val=", 0);		// Update sd status
 }

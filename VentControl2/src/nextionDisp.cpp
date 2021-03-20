@@ -1,28 +1,34 @@
 #include "nextionDisp.h"
 
-
 void nextion_goToPage(String page){
+	#ifdef NEXTION
     Serial2.print("page ");
     Serial2.print(page);
     Serial2.write(0xff);
     Serial2.write(0xff);
     Serial2.write(0xff);
+	#endif
 }
 void nextion_update(String object, float value){
+	#ifdef NEXTION
     Serial2.print(object);
     Serial2.print(value);
     Serial2.write(0xff);
     Serial2.write(0xff);
     Serial2.write(0xff);
+	#endif
 }	
 void nextion_update(String object, int value){
+	#ifdef NEXTION
     Serial2.print(object);
     Serial2.print(value);
     Serial2.write(0xff);
     Serial2.write(0xff);
     Serial2.write(0xff);
+	#endif
 }
 void nextion_update(String object, String message){
+	#ifdef NEXTION
     Serial2.print(object);
 	Serial2.print("\"");
     Serial2.print(message);
@@ -30,13 +36,13 @@ void nextion_update(String object, String message){
     Serial2.write(0xff);
     Serial2.write(0xff);
     Serial2.write(0xff);
+	#endif
 }
 
 
 void sysValUpdate(){
-	if (sendToNextion == 0){
-		return;
-	}
+	#ifdef NEXTION
+
 	// Current motor speeds
   	nextion_update("data.M1.val=", motor1.getSpeed());
   	nextion_update("data.M2.val=", motor2.getSpeed());
@@ -59,10 +65,12 @@ void sysValUpdate(){
 	nextion_update("data.tDelta.val=", tDelta);
 	//nextion_update("data.L0.val=", light);
 	nextion_update("data.mode.val=", enableHeating);
-	return;
+	
+	#endif
 }
 
 void NEXsensor_maxUpdate(){
+	#ifdef NEXTION
 	// Updates recorded sensor max values to nextion
 	int t0_max = motor1.getMax()* 10;
 	int t1_max = t_Outside.max 	* 10;
@@ -79,15 +87,20 @@ void NEXsensor_maxUpdate(){
 	nextion_update("sensor_top.voltage_low.val=", v_min);
 	nextion_update("sensor_top.voltage_top.val=", v_max);
 	nextion_update("sensor_top.current_top.val=", i_max);
+	#endif
 }
 
 void NEXtempThrUpdate(){
+	#ifdef NEXTION
 	// Updates Upper and Lower threshold values in spring_sett1
 	nextion_update("spring_sett1.n0.val=", tempUpper);
 	nextion_update("spring_sett1.n1.val=", tempLower);
+	#endif
 }
 
 void SD_Card_Error(String message){
+	#ifdef NEXTION
 	nextion_update("SD_CARD_error.message.txt=", message);	
 	nextion_goToPage("page SD_CARD_error");
+	#endif
 }

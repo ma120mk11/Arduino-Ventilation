@@ -1,13 +1,17 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
-//************************    PINS    *********************************
 
+// Enable features
+#define DEBUG 1
+#define NEXTION 1
+#define THINGSPEAK 1
+
+//************************    PINS    *********************************
 // USE TX2 for Nextion display communication
 
 #define MOTOR1 12            // motor1 pin HEATED AIR
-#define MOTOR2 13			// motor2 pin DIRECT AIR
-
-#define outside_temp_pin 52 // DS18B20 digital temperature sensor
+#define MOTOR2 13			 // motor2 pin DIRECT AIR
+#define outside_temp_pin 52  // DS18B20 digital temperature sensor
 /**
  * Use a 10k resistor between signal and ???
 */
@@ -46,11 +50,9 @@
 #define voltageOffset 0
 #define currentOffset 0
 
-#define HYSTERESIS 20               // Number of times to read value over threshold before changing motor speed
+#define HYSTERESIS 20           // Number of times to read value over threshold before changing motor speed
 
-#define light_max_Reading 900		// The adc value when full light MAX = 1023
-
-
+#define light_max_Reading 900   // The adc value when full light MAX = 1023
 
 #define pinReference 5      // The measured value of +5V pin
 // *****************  THINGSPEAK **********************
@@ -63,5 +65,14 @@
 #define ONE_SEC 1000
 #define THREE_SEC 3000
 #define ONE_MIN 60000
+
+
+#ifdef DEBUG
+    #define DBPRINT(...) Serial.print(__VA_ARGS__)
+    #define DBPRINT_LN(...) Serial.println(__VA_ARGS__)
+#endif
+#ifdef NEXTION
+    #define NEXPRINT(...) Serial2.println(__VA_ARGS__)
+#endif
 
 #endif
