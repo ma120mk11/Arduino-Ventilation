@@ -1,11 +1,8 @@
 #ifndef SENSOR_H
 #define SENSOR_H
+#define pinReference 5
 
-#include "filter.h"
-#include "settings.h"
 #include <Arduino.h>
-#include <DallasTemperature.h>
-#include <OneWire.h>
 
 class Sensor {
     public:
@@ -17,9 +14,9 @@ class Sensor {
 
 		String unit = "";
 		//virtual void read() =0;
-        
+        ~Sensor();
 
-        virtual void read();
+        void read();
         float getValue();          // Returns the last read value of the sensor
         void setPin(int);
         void resetMinMax();

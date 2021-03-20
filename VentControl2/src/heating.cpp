@@ -1,6 +1,11 @@
 #include "heating.h"
+#include "settings.h"
 
-void heating(){
+int n = HYSTERESIS;
+int k = HYSTERESIS;
+int autoCyckle = 0;
+
+void heating() {
 	// Check if heating is enabled
 	if (enableHeating == 1)
 	{
@@ -15,7 +20,7 @@ void heating(){
 		if (t_Panel.value < tempUpper){
 			n=autoCyckle;
 		}
-	  
+
 		if (t_HeatedAir.value < tempLower && motor1.getSpeed() == 5 ) {
 			if(k<=0){
 				motor1.setSpeed(0);
@@ -25,7 +30,7 @@ void heating(){
 			k--;
 			}
 		}
-	  
+	  	
 		if (t_HeatedAir.value > tempLower && motor1.getSpeed() == 5 ) {
 			k=autoCyckle;
 		}

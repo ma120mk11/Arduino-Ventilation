@@ -7,13 +7,10 @@
 #include "Motor.h"
 #include "settings.h"
 
-#pragma once
-
-//class Motor;
 
 extern bool sendToNextion;
-//extern Motor motor1;
-//extern Motor motor2;
+extern Motor motor1;
+extern Motor motor2;
 extern DigitalTemp	t_Outside;
 extern AnalogTemp 	t_Panel;
 extern AnalogTemp 	t_HeatedAir;
@@ -21,8 +18,6 @@ extern AnalogTemp	t_Inside;
 extern CurrentSensor current;
 extern VoltageSensor voltage;
 
-extern int light;				
-//extern float tempDelta_max;
 extern float tempDelta;			
 extern int nextionPage;			
 extern int nextionMode;				
