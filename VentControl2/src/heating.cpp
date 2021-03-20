@@ -1,4 +1,8 @@
 #include "heating.h"
+#include "settings.h"
+
+int n = HYSTERESIS;
+int k = HYSTERESIS;
 
 void heating() {
 	// Check if heating is enabled
