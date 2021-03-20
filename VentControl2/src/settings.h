@@ -46,7 +46,11 @@
 #define voltageOffset 0
 #define currentOffset 0
 
+#define HYSTERESIS 20               // Number of times to read value over threshold before changing motor speed
+
 #define light_max_Reading 900		// The adc value when full light MAX = 1023
+
+
 
 #define pinReference 5      // The measured value of +5V pin
 // *****************  THINGSPEAK **********************
