@@ -9,9 +9,9 @@ String headers = "date,time,outside,panel,heated-air,room,voltage,current,motorS
 String errorHeaders = "date,time,error";
 String reportHeaders = "date,xxx,xxx,xxx";
 
-void SD_Card_INIT(){
+void SD_Card_INIT() {
 	Serial.print("Initializing SD card...");
-	
+
 	// see if the card is present and can be initialized:
 	if (!SD.begin(chipSelect)) {
 		Serial.println("card failed, or not present.");
