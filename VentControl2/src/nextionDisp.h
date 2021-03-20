@@ -18,7 +18,7 @@ extern AnalogTemp	t_Inside;
 extern CurrentSensor current;
 extern VoltageSensor voltage;
 
-extern int light;				
+//extern int light;				
 //extern float tempDelta_max;
 extern float tempDelta;			
 extern int nextionPage;			

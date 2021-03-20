@@ -57,7 +57,7 @@ void sysValUpdate(){
 	nextion_update("data.V0.val=", v);
 	nextion_update("data.I0.val=", i);
 	nextion_update("data.tDelta.val=", tDelta);
-	nextion_update("data.L0.val=", light);
+	//nextion_update("data.L0.val=", light);
 	nextion_update("data.mode.val=", enableHeating);
 	return;
 }
