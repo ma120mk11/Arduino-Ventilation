@@ -39,12 +39,11 @@ bool enableHeating 	= 1;		// Enable AUTO setting for motor 1
 int tempUpper = 40;				// At which temperature to start motor
 int tempLower = 30;				// At which temp to stop motor
 
-int autoCyckle = 20;			// Number of times to read value over threshold before action
+			
 //********************** ERROR SETTINGS ***************************
 float e_voltageThr = 10.7;    	// If voltage goes under this value, send error message
 
 // ********************** VARIABLES **************************
-int light;
 float derivate;					// The derivate of panel temperature
 float tempDelta;				// How much the temperature is increased when flowing through panel
 
@@ -55,8 +54,7 @@ int nextionPage;				// the page that is currently active
 int nextionMode;				// the active mode
 int nexUpload = 0;				//
 
-int n = autoCyckle;
-int k = autoCyckle;
+
 
 void readSensors() {
 	t_Outside.read();
@@ -67,315 +65,315 @@ void readSensors() {
 	voltage.read();
 }
 
+#pragma region nextion
 //#########################         NEXTION               #############################
+// Declare Nextion objects
+/* Types of objects:
+	* NexButton - Button
+	* NexDSButton - Dual-state Button
+	* NexHotspot - Hotspot, that is like an invisible button
+	* NexCheckbox - Checkbox
+	* NexRadio - "Radio" checkbox, that it's exactly like the checkbox but with a rounded shape
+	* NexSlider - Slider
+	* NexGauge - Gauge
+	* NexProgressBar - Progress Bar
+	* NexText - Text box
+	* NexScrolltext - Scroll text box
+	* NexNumber - Number box
+	* NexVariable - Variable inside the nextion display
+	* NexPage - Page touch event
+	* NexRtc - To use the real time clock for Enhanced Nextion displays
+	*/
+	
+// PAGE 0 - menu
 
-	// Declare Nextion objects
-    /* Types of objects:
-     * NexButton - Button
-     * NexDSButton - Dual-state Button
-     * NexHotspot - Hotspot, that is like an invisible button
-     * NexCheckbox - Checkbox
-     * NexRadio - "Radio" checkbox, that it's exactly like the checkbox but with a rounded shape
-     * NexSlider - Slider
-     * NexGauge - Gauge
-     * NexProgressBar - Progress Bar
-     * NexText - Text box
-     * NexScrolltext - Scroll text box
-     * NexNumber - Number box
-     * NexVariable - Variable inside the nextion display
-     * NexPage - Page touch event
-     * NexRtc - To use the real time clock for Enhanced Nextion displays
-     */
-     
-	// PAGE 0 - menu
-
-	// MENU - Page 0
-		NexButton springHeat = NexButton(0,4,"springHeat");
+// MENU - Page 0
+	NexButton springHeat = NexButton(0,4,"springHeat");
 
 
-	// Set Time
-		NexButton setTime = NexButton(3,17,"setTime");
+// Set Time
+	NexButton setTime = NexButton(3,17,"setTime");
 
-	//  MANUAL MOTOR 1 - Page 4
-		NexButton bMS1 = NexButton(4,1,"bMS1");                 // Button 1
-		NexButton bMS2 = NexButton(4,2,"bMS2");                 // Button 2
-		NexButton bMS3 = NexButton(4,3,"bMS3");                 // Button 3
-		NexButton bMS4 = NexButton(4,4,"bMS4");                 // Button 4
-		NexButton bMS5 = NexButton(4,5,"bMS5");                 // Button 5
-		NexButton bMS0 = NexButton(4,6,"bMS0");                 // Button OFF
-		NexButton bM2  = NexButton(4,12,"bM2");				  	// Change to motor 2 (page 5)
+//  MANUAL MOTOR 1 - Page 4
+	NexButton bMS1 = NexButton(4,1,"bMS1");                 // Button 1
+	NexButton bMS2 = NexButton(4,2,"bMS2");                 // Button 2
+	NexButton bMS3 = NexButton(4,3,"bMS3");                 // Button 3
+	NexButton bMS4 = NexButton(4,4,"bMS4");                 // Button 4
+	NexButton bMS5 = NexButton(4,5,"bMS5");                 // Button 5
+	NexButton bMS0 = NexButton(4,6,"bMS0");                 // Button OFF
+	NexButton bM2  = NexButton(4,12,"bM2");				  	// Change to motor 2 (page 5)
 
-	//  MANUAL MOTOR 2 - Page 5
-		NexButton bM2S1 = NexButton(5,1,"bM2S1");           // Button 1
-		NexButton bM2S2 = NexButton(5,2,"bM2S2");           // Button 2
-		NexButton bM2S3 = NexButton(5,3,"bM2S3");           // Button 3
-		NexButton bM2S4 = NexButton(5,4,"bM2S4");           // Button 4
-		NexButton bM2S5 = NexButton(5,5,"bM2S5");           // Button 5
-		NexButton bM2S0 = NexButton(5,6,"bM2S0");           // Button OFF
-		NexButton bM1	= NexButton(5,11,"bM1");			// Change to motor 1 (page 4)
+//  MANUAL MOTOR 2 - Page 5
+	NexButton bM2S1 = NexButton(5,1,"bM2S1");           // Button 1
+	NexButton bM2S2 = NexButton(5,2,"bM2S2");           // Button 2
+	NexButton bM2S3 = NexButton(5,3,"bM2S3");           // Button 3
+	NexButton bM2S4 = NexButton(5,4,"bM2S4");           // Button 4
+	NexButton bM2S5 = NexButton(5,5,"bM2S5");           // Button 5
+	NexButton bM2S0 = NexButton(5,6,"bM2S0");           // Button OFF
+	NexButton bM1	= NexButton(5,11,"bM1");			// Change to motor 1 (page 4)
 
-	// Spring Heating MODE
-		NexButton springExit = NexButton(6,1,"springExit");		// Exit spring mode
+// Spring Heating MODE
+	NexButton springExit = NexButton(6,1,"springExit");		// Exit spring mode
 
-	//	spring_sett1 - SPRING SETTINGS
-		NexButton Dec_Utemp = NexButton(7,5,"Dec_Utemp");	// Upper temp DECREASE
-		NexButton Inc_Utemp = NexButton(7,7,"Inc_Utemp");	// Upper temp INCREASE
-		NexButton Dec_Ltemp = NexButton(7,6,"Dec_Ltemp");
-		NexButton Inc_Ltemp = NexButton(7,8,"Inc_Ltemp");
-		
-	// 9 - Sensor_data
-		NexButton Measure = NexButton(9,22,"Measure");
-		
-	// 10 - sensor_top
-		NexButton Reset = NexButton(10,22,"Reset");			// Reset top_values
-		NexButton Update = NexButton(10,25,"Update");
+//	spring_sett1 - SPRING SETTINGS
+	NexButton Dec_Utemp = NexButton(7,5,"Dec_Utemp");	// Upper temp DECREASE
+	NexButton Inc_Utemp = NexButton(7,7,"Inc_Utemp");	// Upper temp INCREASE
+	NexButton Dec_Ltemp = NexButton(7,6,"Dec_Ltemp");
+	NexButton Inc_Ltemp = NexButton(7,8,"Inc_Ltemp");
+	
+// 9 - Sensor_data
+	NexButton Measure = NexButton(9,22,"Measure");
+	
+// 10 - sensor_top
+	NexButton Reset = NexButton(10,22,"Reset");			// Reset top_values
+	NexButton Update = NexButton(10,25,"Update");
 
-	// 14 Voltage Error
-		NexButton v_err_exit = NexButton(14,6,"v_err_exit");			// Exit mode
-		NexButton ignore = NexButton(14,3,"ignore");		// Ignore error	
+// 14 Voltage Error
+	NexButton v_err_exit = NexButton(14,6,"v_err_exit");// Exit mode
+	NexButton ignore = NexButton(14,3,"ignore");		// Ignore error	
 
-	// 15 - Settings 2
-		NexButton v_errDec = NexButton(15,3,"v_errDec");
-		NexButton v_errInc = NexButton(15,4,"v_errInc");
+// 15 - Settings 2
+	NexButton v_errDec = NexButton(15,3,"v_errDec");
+	NexButton v_errInc = NexButton(15,4,"v_errInc");
 
-	// 21 - sd_card_sett
-		NexButton sd_unmount = NexButton(21,4,"sd_unmount");
-		NexButton sd_init = NexButton(21,5,"sd_init");
+// 21 - sd_card_sett
+	NexButton sd_unmount = NexButton(21,4,"sd_unmount");
+	NexButton sd_init = NexButton(21,5,"sd_init");
 
 
 // ************* Register button objects to the touch event list. *****************
 NexTouch *nex_listen_list[] = {
-   // Page 0 menu
-      &springHeat,
+// Page 0 menu
+	&springHeat,
 
-	  
-   // Page 1
-
-   // Page 2
-
-   // Page 3
-      &setTime,
-  
-   // Manual Page 4
-      &bMS1,
-      &bMS2,
-      &bMS3,
-      &bMS4,
-      &bMS5,
-      &bMS0,
-	  &bM2,
-
-   // Manual Page 5
-      &bM2S1,
-      &bM2S2,
-      &bM2S3,
-      &bM2S4,
-      &bM2S5,
-      &bM2S0,
-	  &bM1,
 	
-	// spring mode page 6
-	  &springExit,
-	
-	// spring_sett1
-	  &Dec_Utemp,
-	  &Inc_Utemp,
-	  &Dec_Ltemp,
-	  &Inc_Ltemp,
-	  
-	// Settings Page 10
-	
-	// sensor_data
-	  &Measure,
-	  
-	// sensor_top
-	  &Reset,
-	  &Update,
-	// 14 Voltage Error
-	  &v_err_exit,
-	  &ignore,
-	
-	// 15 - settings 2
-		&v_errDec,
-		&v_errInc,
+// Page 1
 
-	// 21 sd_card_sett
-		&sd_unmount,
-		&sd_init,	
-    NULL
+// Page 2
+
+// Page 3
+	&setTime,
+
+// Manual Page 4
+	&bMS1,
+	&bMS2,
+	&bMS3,
+	&bMS4,
+	&bMS5,
+	&bMS0,
+	&bM2,
+
+// Manual Page 5
+	&bM2S1,
+	&bM2S2,
+	&bM2S3,
+	&bM2S4,
+	&bM2S5,
+	&bM2S0,
+	&bM1,
+
+// spring mode page 6
+	&springExit,
+
+// spring_sett1
+	&Dec_Utemp,
+	&Inc_Utemp,
+	&Dec_Ltemp,
+	&Inc_Ltemp,
+	
+// Settings Page 10
+
+// sensor_data
+	&Measure,
+	
+// sensor_top
+	&Reset,
+	&Update,
+// 14 Voltage Error
+	&v_err_exit,
+	&ignore,
+
+// 15 - settings 2
+	&v_errDec,
+	&v_errInc,
+
+// 21 sd_card_sett
+	&sd_unmount,
+	&sd_init,	
+NULL
 };
 
 
 //*****************************    DISPLAY BUTTON FUNCTIONS   ********************************************
 
 // ********** MENU **********
-	void springHeatPopCallback(void *ptr){
-		enableHeating = 1;
-		Serial.print("Enabled Heating on display. enableHeating = ");
-		Serial.println(enableHeating);
-	}
+void springHeatPopCallback(void *ptr){
+	enableHeating = 1;
+	Serial.print("Enabled Heating on display. enableHeating = ");
+	Serial.println(enableHeating);
+}
 
-	void setTimePopCallback(void *ptr){
-		/**
-		 * TODO:
-		 * Get the values that are set on the display and update RTC.
-		 */
-		
-		
-		DateTime now = rtc.now();
-		// Update nextion clock:
-		nextion_update("rtc2=", now.day());
-		nextion_update("rtc1=", now.month());
-		// TODO //nextion_update("rtc0.val=", now.year());
-		nextion_update("rtc3=", now.hour());
-		nextion_update("rtc4=", now.minute());
-		
-	}
-
-
-	// ************MANUAL - page 4 **************
-
-	// 1-button release function
-		void bMS1PopCallback(void *ptr){
-			motor1.setSpeed(1);                		// Sets motor speed
-			dbSerialPrintln("Page4-Button-1");
-		}	
-	// 2-button release function
-		void bMS2PopCallback(void *ptr){
-			motor1.setSpeed(2);
-		}
-	// 3-button release function
-		void bMS3PopCallback(void *ptr){
-			motor1.setSpeed(3); 
-		}
-	// 4-button release function
-		void bMS4PopCallback(void *ptr){
-			motor1.setSpeed(4);  
-		}
-	// 5-button release function
-		void bMS5PopCallback(void *ptr){
-			motor1.setSpeed(5);
-		}
-	// OFF-button release function
-		void bMS0PopCallback(void *ptr){
-			motor1.setSpeed(0); 
-		}
-	// Motor 2 button
-		void bM2PopCallback(void *ptr){
-			if(allow2motors == 0){
-				motor1.setSpeed(0);
-			}	
-		}
-	// ************   MANUAL Motor 2 - page 5 **************
-
-	// 1-button release function
-		void bM2S1PopCallback(void *ptr){
-			motor2.setSpeed(1);                	// Sets motor speed
-		  	dbSerialPrintln("Page5-Button-1");
-		}
-	// 2-button release function
-		void bM2S2PopCallback(void *ptr){
-			motor2.setSpeed(2);
-		}
-	// 3-button release function
-		void bM2S3PopCallback(void *ptr){
-			motor2.setSpeed(3); 
-		}
-	// 4-button release function
-		void bM2S4PopCallback(void *ptr){
-			motor2.setSpeed(4);  
-		}
-	// 5-button release function
-		void bM2S5PopCallback(void *ptr){
-			motor2.setSpeed(5);
-		}
-	// OFF-button release function
-		void bM2S0PopCallback(void *ptr){
-			motor2.setSpeed(0); 
-		}
-	// Motor 1 button
-		void bM1PopCallback(void *ptr){		// When switching page, check if both can be on at the same time, if not -> off
-			if(allow2motors == 0){
-				motor2.setSpeed(0);
-			}
-		}
-	// PAGE 6 SPRING HEATING
-		void springExitPopCallback(void *ptr){
-			enableHeating = 0;
-			motor1.setSpeed(0);
-		}
-	// Upper temp decrease
-		void Dec_UtempPopCallback(void *ptr){
-			tempUpper --;
-			NEXtempThrUpdate();
-		}
-	// Upper temp increase
-		void Inc_UtempPopCallback(void *ptr){
-			tempUpper ++;
-			NEXtempThrUpdate();
-		}
-	// Lower temp decrease
-		void Dec_LtempPopCallback(void *ptr){
-			tempLower --;
-			NEXtempThrUpdate();
-		}
-	// Lower temp increase
-		void Inc_LtempPopCallback(void *ptr){
-			tempLower ++;
-			NEXtempThrUpdate();
-		}
-	// Top values reset button
-		void ResetPopCallback(void *ptr){
-			t_Outside.resetMinMax();
-			t_Panel.resetMinMax();
-			t_HeatedAir.resetMinMax();
-			t_Inside.resetMinMax();
-			voltage.resetMinMax();
-			current.resetMinMax();
-
-			NEXsensor_maxUpdate();
-		}
-	// Top values update button
-		void UpdatePopCallback(void *ptr){
-			NEXsensor_maxUpdate();
-		}
-		
-	// Update sensors
-		void MeasurePopCallback(void *ptr){
-			readSensors();
-			sysValUpdate();
-		}
-	// 14 Voltage error
-		void v_err_exitPopCallback(void *ptr){
-			errorPending=0;
-			enableHeating=0;					// Turn off heating
-		}
-		void ignorePopCallback(void *ptr){
-			errorPending=0;
-		}
+void setTimePopCallback(void *ptr){
+	/**
+	 * TODO:
+	 * Get the values that are set on the display and update RTC.
+	 */
 	
-	// 15 - settings 2
-		void v_errDecPopCallback(void *ptr){
-			e_voltageThr -= 0.1;
-			int thr = e_voltageThr*10;
-      		nextion_update("settings_2.v_err.val=", thr);
-		}
-		
-		void v_errIncPopCallback(void *ptr){
-			e_voltageThr += 0.1;
-			int thr = e_voltageThr*10;
-      		nextion_update("settings_2.v_err.val=", thr);
-		}
+	
+	DateTime now = rtc.now();
+	// Update nextion clock:
+	nextion_update("rtc2=", now.day());
+	nextion_update("rtc1=", now.month());
+	// TODO //nextion_update("rtc0.val=", now.year());
+	nextion_update("rtc3=", now.hour());
+	nextion_update("rtc4=", now.minute());
+	
+}
 
-	// page 21 sd_card_sett
-		void sd_unmountPopCallback(void *ptr){
-			SD_unmount();
-		}
 
-		void sd_initPopCallback(void *ptr){
-			SD_Card_INIT();
-		}
+// ************MANUAL - page 4 **************
 
+// 1-button release function
+	void bMS1PopCallback(void *ptr){
+		motor1.setSpeed(1);                		// Sets motor speed
+		dbSerialPrintln("Page4-Button-1");
+	}	
+// 2-button release function
+	void bMS2PopCallback(void *ptr){
+		motor1.setSpeed(2);
+	}
+// 3-button release function
+	void bMS3PopCallback(void *ptr){
+		motor1.setSpeed(3); 
+	}
+// 4-button release function
+	void bMS4PopCallback(void *ptr){
+		motor1.setSpeed(4);  
+	}
+// 5-button release function
+	void bMS5PopCallback(void *ptr){
+		motor1.setSpeed(5);
+	}
+// OFF-button release function
+	void bMS0PopCallback(void *ptr){
+		motor1.setSpeed(0); 
+	}
+// Motor 2 button
+	void bM2PopCallback(void *ptr){
+		if(allow2motors == 0){
+			motor1.setSpeed(0);
+		}	
+	}
+// ************   MANUAL Motor 2 - page 5 **************
+
+// 1-button release function
+	void bM2S1PopCallback(void *ptr){
+		motor2.setSpeed(1);                	// Sets motor speed
+		dbSerialPrintln("Page5-Button-1");
+	}
+// 2-button release function
+	void bM2S2PopCallback(void *ptr){
+		motor2.setSpeed(2);
+	}
+// 3-button release function
+	void bM2S3PopCallback(void *ptr){
+		motor2.setSpeed(3); 
+	}
+// 4-button release function
+	void bM2S4PopCallback(void *ptr){
+		motor2.setSpeed(4);  
+	}
+// 5-button release function
+	void bM2S5PopCallback(void *ptr){
+		motor2.setSpeed(5);
+	}
+// OFF-button release function
+	void bM2S0PopCallback(void *ptr){
+		motor2.setSpeed(0); 
+	}
+// Motor 1 button
+	void bM1PopCallback(void *ptr){		// When switching page, check if both can be on at the same time, if not -> off
+		if(allow2motors == 0){
+			motor2.setSpeed(0);
+		}
+	}
+// PAGE 6 SPRING HEATING
+	void springExitPopCallback(void *ptr){
+		enableHeating = 0;
+		motor1.setSpeed(0);
+	}
+// Upper temp decrease
+	void Dec_UtempPopCallback(void *ptr){
+		tempUpper --;
+		NEXtempThrUpdate();
+	}
+// Upper temp increase
+	void Inc_UtempPopCallback(void *ptr){
+		tempUpper ++;
+		NEXtempThrUpdate();
+	}
+// Lower temp decrease
+	void Dec_LtempPopCallback(void *ptr){
+		tempLower --;
+		NEXtempThrUpdate();
+	}
+// Lower temp increase
+	void Inc_LtempPopCallback(void *ptr){
+		tempLower ++;
+		NEXtempThrUpdate();
+	}
+// Top values reset button
+	void ResetPopCallback(void *ptr){
+		t_Outside.resetMinMax();
+		t_Panel.resetMinMax();
+		t_HeatedAir.resetMinMax();
+		t_Inside.resetMinMax();
+		voltage.resetMinMax();
+		current.resetMinMax();
+
+		NEXsensor_maxUpdate();
+	}
+// Top values update button
+	void UpdatePopCallback(void *ptr){
+		NEXsensor_maxUpdate();
+	}
+	
+// Update sensors
+	void MeasurePopCallback(void *ptr){
+		readSensors();
+		sysValUpdate();
+	}
+// 14 Voltage error
+	void v_err_exitPopCallback(void *ptr){
+		errorPending=0;
+		enableHeating=0;					// Turn off heating
+	}
+	void ignorePopCallback(void *ptr){
+		errorPending=0;
+	}
+
+// 15 - settings 2
+	void v_errDecPopCallback(void *ptr){
+		e_voltageThr -= 0.1;
+		int thr = e_voltageThr*10;
+		nextion_update("settings_2.v_err.val=", thr);
+	}
+	
+	void v_errIncPopCallback(void *ptr){
+		e_voltageThr += 0.1;
+		int thr = e_voltageThr*10;
+		nextion_update("settings_2.v_err.val=", thr);
+	}
+
+// page 21 sd_card_sett
+	void sd_unmountPopCallback(void *ptr){
+		SD_unmount();
+	}
+
+	void sd_initPopCallback(void *ptr){
+		SD_Card_INIT();
+	}
+#pragma endregion nextion
 
 void WifiInit() {
 	Serial.print("Initializing Wifi module...");
@@ -465,6 +463,7 @@ void loop() {
    * TODO:
    * - Periodically run the motor for a specified time automatically. 
    * - Store settings in EEPROM
+   * - What happens if RTC card fails?
 	*/
    
 	//DateTime now = rtc.now();
@@ -482,9 +481,9 @@ void loop() {
 	
 	// Once every 3 seconds
 	if((millis() - loop_timer_3s) > THREE_SEC){
-		//readSensors();
-		//heating();
-		//sysValUpdate();
+		readSensors();
+		heating();
+		sysValUpdate();
 
 
 		loop_timer_3s = millis();		// Reset timer
