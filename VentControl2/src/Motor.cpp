@@ -3,7 +3,10 @@
 //#include <Arduino.h>
 #include "nextionDisp.h"
 
-Motor::Motor(int pin) { output_pin = pin; }    
+Motor::Motor(int pin) { 
+	output_pin = pin;
+}    
+
 void Motor::setPin(int pin) { output_pin = pin; }
 
 int Motor::getSpeed() 	{ return speed; }
