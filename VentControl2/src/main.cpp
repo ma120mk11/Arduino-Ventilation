@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <EEPROM.h>
 #include "Nextion.h"
 #include "nextionDisp.h"
 #include "SD_Card.h"
@@ -25,18 +26,23 @@ VoltageSensor voltage(VOLTAGE);
 const char *ssid = "HUAWEI P20 Pro";
 const char *pass = "3665d14cd73b";
 
-ESP8266Client client;
+ESP8266Client client;					// WIFI client
 
 DS1302 rtc(RTC_RST, RTC_SCL, RTC_IO);	// Initialize rtc object
 
 //***********************  SETTINGS  ***************************
-bool enableSerialPrint = 0;		// Turn on/off printing sensor values to serial 1
-bool sendToNextion 	= 1;		// Turn on/off sending sensor values to nextion (serial 2)
+//bool enableSerialPrint = 0;		// Turn on/off printing sensor values to serial 1
+//bool sendToNextion 	= 1;		// Turn on/off sending sensor values to nextion (serial 2)
 bool allow2motors 	= 0;		// Nextion setting, set default value here
 bool enableHeating 	= 1;		// Enable AUTO setting for motor 1
 int tempUpper = 40;				// At which temperature to start motor
 int tempLower = 30;				// At which temp to stop motor
 
+struct eepromVariables {
+	int tempUpper;
+	int tempLower;
+	float e_voltageThr;
+};
 			
 //********************** ERROR SETTINGS **************************
 float e_voltageThr = 10.7;    	// If voltage goes under this value, send error message
@@ -50,12 +56,26 @@ bool errorPending = 0;			//
 
 int nextionPage;				// the page that is currently active
 int nextionMode;				// the active mode
-int nexUpload = 0;				//
 
 int prevDay;
 unsigned long loop_timer_1s;
 unsigned long loop_timer_3s;
 unsigned long loop_timer_1min;
+
+void RtcInit() {
+	DBPRINT("Initializing RTC...");
+	rtc.begin();
+	if(!rtc.isrunning()) {
+		rtc.adjust(DateTime(__DATE__,__TIME__));
+		DateTime now = rtc.now();
+		String date = String(now.day()) + "." + String(now.month()) + "." + String(now.year());
+		String time = String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second());
+		if(date == "165.165.2165"){
+			DBPRINT_LN("ERROR");
+		}
+		else verboseDbln("adjusted to " + date + "  " + time);
+	} else DBPRINT_LN("DONE");
+}
 
 void WifiInit() {
 	DBPRINT("Initializing Wifi module...");
@@ -66,7 +86,21 @@ void WifiInit() {
   	{
     	DBPRINT_LN(F("Error connecting to WiFi"));
   	}
-	else{ DBPRINT("DONE\n"); }
+	else{ DBPRINT_LN("DONE"); }
+}
+
+void storeEEPROM() {
+	#ifdef EEPROM_STORE
+		DBPRINT("Storing in EEPROM...");
+		eepromVariables eeStore;
+		eeStore.e_voltageThr = e_voltageThr;
+		eeStore.tempLower = tempLower;
+		eeStore.tempUpper = tempUpper;
+		int eeAddress = 0;
+		EEPROM.put(eeAddress, eeStore);
+
+		DBPRINT_LN("DONE");
+	#endif
 }
 
 void readSensors() {
@@ -78,7 +112,6 @@ void readSensors() {
 	voltage.read();
 
 	tempDelta = t_HeatedAir.value - t_Outside.value;
-
 }
 
 #pragma region nextion
@@ -133,6 +166,8 @@ void readSensors() {
 // 10 - sensor_top
 	NexButton Reset = NexButton(10,22,"Reset");			// Reset top_values
 	NexButton Update = NexButton(10,25,"Update");
+// 12 - disp_settings
+	NexButton eeStore = NexButton(12,21,"eeStore");
 // 14 Voltage Error
 	NexButton v_err_exit = NexButton(14,6,"v_err_exit");// Exit mode
 	NexButton ignore = NexButton(14,3,"ignore");		// Ignore error	
@@ -176,6 +211,8 @@ NexTouch *nex_listen_list[] = {
 	&Dec_Ltemp,
 	&Inc_Ltemp,
 // Settings Page 10
+// display_settings Page 12
+	&eeStore,
 // sensor_data
 	&Measure,
 // sensor_top
@@ -328,6 +365,10 @@ void setTimePopCallback(void *ptr){
 		readSensors();
 		sysValUpdate();
 	}
+// 12
+	void eeStorePopCallBack(void *ptr) {
+		storeEEPROM();
+	}
 // 14 Voltage error
 	void v_err_exitPopCallback(void *ptr){
 		errorPending=0;
@@ -361,16 +402,36 @@ void setTimePopCallback(void *ptr){
 void setup() {													
 	Serial.begin(9600);
 	Serial2.begin(9600);
-	delay(100);
+	delay(400);
 	DBPRINT_LN("Starting Setup...");
+
+	#ifdef EEPROM_STORE
+		DBPRINT("Reading EEPROM...");
+		eepromVariables eeRead;
+		int eeAddress = 0;
+		EEPROM.get(eeAddress, eeRead);
+		e_voltageThr = eeRead.e_voltageThr;
+		tempUpper = eeRead.tempUpper;
+		tempLower = eeRead.tempLower;
+
+		// // Check for errors
+		// if (int1 > 0 && int1 < 80 && int2 > 0 && int2 < 80 && float1 > 8 && float1 < 20) {
+		// 	tempLower = int1;
+		// 	tempUpper = int2;
+		// 	e_voltageThr = float1;
+			DBPRINT_LN("DONE");
+		// }
+		// else { DBPRINT_LN("ERROR - using deafult values."); }
+	#endif
 	#ifdef NEXTION
 		DBPRINT("Initializing nextion display...");
-		nexInit();							// Initialize nextion display
-		nextion_goToPage("ardu_restart");	// Notify the display that arduino was restarted
+		bool isInitialized = nexInit();					// Initialize nextion display
+		nextion_goToPage("ardu_restart");				// Notify the display that arduino was restarted
 		nextion_update("settings_2.v_err.val=", e_voltageThr*10);
-		DBPRINT_LN("DONE");
+		if(isInitialized)DBPRINT_LN("DONE");
+		else DBPRINT_LN("ERROR");
 	#endif
-	
+	RtcInit();
 	pinMode(MOTOR1, OUTPUT);           	// set motor as output
 	pinMode(MOTOR2, OUTPUT);           	// set motor as output
 	readSensors();
@@ -380,13 +441,7 @@ void setup() {
 		WifiInit();
 		ThingSpeak.begin(client);	
 	#endif
-	DBPRINT("Initializing RTC...");
-	rtc.begin();
-	if(!rtc.isrunning()) {
-		DBPRINT("RTC is not running...");
-		rtc.adjust(DateTime(__DATE__,__TIME__));
-		DBPRINT_LN("time and date adjusted.");
-	} else DBPRINT_LN("DONE");
+	
 
 	#pragma region nextion_setup
 	springHeat.attachPop(springHeatPopCallback, &springHeat); 	// MENU
@@ -414,6 +469,7 @@ void setup() {
 	Reset.attachPop(ResetPopCallback, &Reset);
 	Update.attachPop(UpdatePopCallback, &Update);
 	v_err_exit.attachPop(v_err_exitPopCallback, & v_err_exit);
+	eeStore.attachPop(eeStorePopCallBack, &eeStore);
 	ignore.attachPop(ignorePopCallback, &ignore);
 	v_errDec.attachPop(v_errDecPopCallback, &v_errDec);     	// page 15 - settings 2
 	v_errInc.attachPop(v_errIncPopCallback, &v_errInc);
@@ -434,10 +490,8 @@ void loop() {
 	/**
 	* TODO:
 	* - Periodically run the motor for a specified time automatically. 
-	* - Store settings in EEPROM
 	* - What happens if RTC card fails?
 	*/
-   
 	//DateTime now = rtc.now();
 
 	// Every cycle:
@@ -454,10 +508,38 @@ void loop() {
 	
 	// Once every 3 seconds
 	if((millis() - loop_timer_3s) > THREE_SEC){
-		readSensors();
-		heating();
-		sysValUpdate();
+		// readSensors();
+		// heating();
+		// sysValUpdate();
 
+		#ifdef TELEMETRY
+			//  Message is formatted for use with Telemetry viewer. Use a layout2 in Telemetry folder.
+			// TODO: add light sensor
+			
+			char outside_text[30];
+			char panel_text[30];
+			char air_text[30];
+			char room_text[30];
+			char filtered_text[30];
+			char voltage_text[30];
+			char current_text[30];
+			char tdelta_text[30];
+			char m1speed_text[30];
+
+			dtostrf(t_Outside.getValue(), 10, 10, outside_text);
+			dtostrf(t_Panel.getValue(), 10, 10, panel_text);
+			dtostrf(t_HeatedAir.getValue(), 10, 10, air_text);
+			dtostrf(t_Inside.getValue(), 10, 10, room_text);
+			dtostrf(0, 10, 10, filtered_text);
+			dtostrf(voltage.getValue(), 10, 10, voltage_text);
+			dtostrf(current.getValue(), 10, 10, current_text);
+			dtostrf(tempDelta, 10, 10, tdelta_text);
+			dtostrf(motor1.getSpeed(), 10, 10, m1speed_text);
+
+			char text[280];
+			snprintf(text, 280, "%s,%s,%s,%s,%s,%s,%s,%s,%s", outside_text, panel_text, air_text, room_text, voltage_text, current_text,filtered_text,tdelta_text,m1speed_text);
+			Serial.println(text);
+		#endif
 
 		loop_timer_3s = millis();		// Reset timer
 	}
@@ -469,39 +551,91 @@ void loop() {
 
 		// SD_log(date, time);
 		
-		DBPRINT("Sending to Thingspeak...");
-		
 		#ifdef THINGSPEAK
+			DBPRINT("Sending to Thingspeak...");
 			ThingSpeak.setField(1,t_Outside.getValue());
 			ThingSpeak.setField(2,t_Panel.getValue());
 			ThingSpeak.setField(3,t_HeatedAir.getValue());
 			ThingSpeak.setField(4,t_Inside.getValue());
 			ThingSpeak.setField(5,voltage.getValue());
 			ThingSpeak.setField(6,current.getValue());
-			ThingSpeak.setField(7,t_Outside.getValue());	// Implement
-			ThingSpeak.setField(8,t_Outside.getValue());	// Implement
-			ThingSpeak.writeFields(CHANNEL_ID,CHANNEL_API_KEY);
+			ThingSpeak.setField(7,motor1.getSpeed());
+			ThingSpeak.setField(8,t_Outside.getValue());	// TODO
+			int status = ThingSpeak.writeFields(CHANNEL_ID,CHANNEL_API_KEY);
+			// Print error to nextion an serial
+			if(status != 200){
+				DBPRINT_LN("ERROR");
+				// 200 - successful.
+				// 404 - Incorrect API key (or invalid ThingSpeak server address)
+				// -101 - Value is out of range or string is too long (> 255 characters)
+				// -201 - Invalid field number specified
+				// -210 - setField() was not called before writeFields()
+				// -301 - Failed to connect to ThingSpeak
+				// -302 - Unexpected failure during write to ThingSpeak
+				// -303 - Unable to parse response
+				// -304 - Timeout waiting for server to respond
+				// -401 - Point was not inserted (most probable cause is the rate limit of once every 15 seconds)
+				switch (status)
+				{
+				case 404:
+					verboseDbln("incorrect API key");
+					nextion_update("wifi_error.message.txt", "404 Thingspeak-incorrect API key.");
+					break;
+				case -101:
+					verboseDbln("value out of range or string is too long");
+					nextion_update("wifi_error.message.txt", "- 101 Thingspeak-value out of range.");
+					break;
+				case -210:
+					verboseDbln("setField() was not called before writeFields()");
+					nextion_update("wifi_error.message.txt", "-210 Error");
+					break;
+				case -301:
+					verboseDbln("Failed to connect to ThingSpeak");
+					nextion_update("wifi_error.message.txt", "-301 Failed to connect to ThingSpeak");
+					break;
+				case -302:
+					verboseDbln("Unexpected failure during write to ThingSpeak");
+					nextion_update("wifi_error.message.txt", "-302 Error");
+					break;
+				case -303:
+					verboseDbln("Unable to parse response");
+					nextion_update("wifi_error.message.txt", "-303 Error");
+					break;
+				case -304:
+					verboseDbln("Timeout waiting for server to respond");
+					nextion_update("wifi_error.message.txt", "-304 Error");
+					break;
+				case -401:
+					verboseDbln("Point was not inserted (rate lilit of 15s?)");
+					nextion_update("wifi_error.message.txt", "-401 Error");
+					break;
+				default:
+					verboseDbln("unknown error");
+					nextion_update("wifi_error.message.txt", "Unknown thingspeak error.");
+					break;
+				}
+				nextion_goToPage("wifi_error");
+				
+			} 
+			else { DBPRINT_LN("DONE"); }
 		#endif
 
-		#ifdef DEBUG
-			if(ThingSpeak.getStatus() == "") DBPRINT_LN("ERROR");
-			else DBPRINT_LN("DONE");
-		#endif
+
 
 		loop_timer_1min = millis();
 	}
 
-	// Once every day
+	// //Once every day
 	// if(now.day() != prevDay){
-
-	// 	// Update nextion clock:
-
-	// 	// TODO //nextion_update("rtc0.val=", now.year());
-	// 	nextion_update("rtc1=", now.month());
-	// 	nextion_update("rtc2=", now.day());
-	// 	nextion_update("rtc3=", now.hour());
-	// 	nextion_update("rtc4=", now.minute());
-
+	// 	#ifdef NEXTION
+	// 		// Update nextion clock:
+	// 		// TODO //nextion_update("rtc0.val=", now.year());
+	// 		nextion_update("rtc1=", now.month());
+	// 		nextion_update("rtc2=", now.day());
+	// 		nextion_update("rtc3=", now.hour());
+	// 		nextion_update("rtc4=", now.minute());
+	// 	#endif
+	// 	storeEEPROM();
 	// 	prevDay = now.day();			// Reset logic
 	// }
 }
