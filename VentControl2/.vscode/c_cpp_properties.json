@@ -12,6 +12,7 @@
                 "C:/Users/oveni/Documents/GitHub/Arduino-Ventilation/VentControl2/src",
                 "C:/Users/oveni/Documents/Arduino/libraries/Arduino-Temperature-Control-Library-master",
                 "C:/Users/oveni/Documents/Arduino/libraries/OneWire",
+                "C:/Users/oveni/.platformio/packages/framework-arduino-avr/libraries/EEPROM/src",
                 "C:/Users/oveni/Documents/Arduino/libraries/ITEADLIB_Arduino_Nextion-0.7.0",
                 "C:/Users/oveni/Documents/GitHub/Arduino-Ventilation/VentControl2/.pio/libdeps/megaatmega2560/SD/src",
                 "C:/Users/oveni/.platformio/packages/framework-arduino-avr/libraries/SPI/src",
@@ -31,7 +32,6 @@
                 "C:/Users/oveni/Documents/Arduino/libraries/src",
                 "C:/Users/oveni/Documents/GitHub/Arduino-Ventilation/VentControl2/.pio/libdeps/megaatmega2560/TinyWireM",
                 "C:/Users/oveni/.platformio/lib/SD/src",
-                "C:/Users/oveni/.platformio/packages/framework-arduino-avr/libraries/EEPROM/src",
                 "C:/Users/oveni/.platformio/packages/framework-arduino-avr/libraries/HID/src",
                 "C:/Users/oveni/.platformio/packages/tool-unity",
                 ""
@@ -43,6 +43,7 @@
                     "C:/Users/oveni/Documents/GitHub/Arduino-Ventilation/VentControl2/src",
                     "C:/Users/oveni/Documents/Arduino/libraries/Arduino-Temperature-Control-Library-master",
                     "C:/Users/oveni/Documents/Arduino/libraries/OneWire",
+                    "C:/Users/oveni/.platformio/packages/framework-arduino-avr/libraries/EEPROM/src",
                     "C:/Users/oveni/Documents/Arduino/libraries/ITEADLIB_Arduino_Nextion-0.7.0",
                     "C:/Users/oveni/Documents/GitHub/Arduino-Ventilation/VentControl2/.pio/libdeps/megaatmega2560/SD/src",
                     "C:/Users/oveni/.platformio/packages/framework-arduino-avr/libraries/SPI/src",
@@ -62,7 +63,6 @@
                     "C:/Users/oveni/Documents/Arduino/libraries/src",
                     "C:/Users/oveni/Documents/GitHub/Arduino-Ventilation/VentControl2/.pio/libdeps/megaatmega2560/TinyWireM",
                     "C:/Users/oveni/.platformio/lib/SD/src",
-                    "C:/Users/oveni/.platformio/packages/framework-arduino-avr/libraries/EEPROM/src",
                     "C:/Users/oveni/.platformio/packages/framework-arduino-avr/libraries/HID/src",
                     "C:/Users/oveni/.platformio/packages/tool-unity",
                     ""
