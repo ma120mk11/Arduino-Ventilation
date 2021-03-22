@@ -6,25 +6,38 @@
 
 class Sensor {
     public:
-		float value = 0;    // The latest sensor reading
-		float max 	= 0;
-		float min 	= 0;
-		float offset= 0;
-		int pin 	= 0;
-
-		String unit = "";
-		//virtual void read() =0;
-        ~Sensor();
-
+		float value;    // The latest sensor reading
+		float max;
+		float min;
+		float offset;
+		int pin;
+		String unit;
+        
+        /**
+         * Reads sensor and store it in value. 
+         * To get latest reading use getValue().
+         * @return Nothing.
+         */
         void read();
-        float getValue();          // Returns the last read value of the sensor
+        /**
+         * @return the last read value of the sensor in correct unit.
+         */
+        float getValue();
         void setPin(int);
         void resetMinMax();
-       // float direction();
+
+        /**
+         * https://classroom.synonym.com/calculate-trendline-2709.html
+         * 
+         * @return Slope of the trendline
+         */
+        float getSlope();
+       ~Sensor();
 
     protected:
         void newValue(float);
     private:
+        int arrayLenght = 10;
         float values[10];    
 };
 
@@ -37,12 +50,17 @@ class AnalogSensor: public Sensor {
 
 class DigitalTemp: public Sensor {
     public:
-        DigitalTemp();
-        DigitalTemp(int);
+        DigitalTemp(int rPin);
+        /**
+        * @param rPin Sensor digital pin
+        * @param rIndex Sensor index
+        */
+        DigitalTemp(int rPin, int rIndex);
         void setIndex(int);
+        
         void read();
     private:
-        int index = 0;
+        int index;
 };
 
 class AnalogTemp: public AnalogSensor {
@@ -64,8 +82,9 @@ class VoltageSensor: public AnalogSensor {
 
 class CurrentSensor: public AnalogSensor {
 	/* 	Example code:
-		https://wiki.dfrobot.com/20A_Current_Sensor_SKU_SEN0214#More */
-	// The motor controller board cunsumes 65mA in standby.
+		https://wiki.dfrobot.com/20A_Current_Sensor_SKU_SEN0214#More
+	    - The motor controller board cunsumes 65mA in standby.
+    */
     public:
         CurrentSensor();
         CurrentSensor(int);     // 

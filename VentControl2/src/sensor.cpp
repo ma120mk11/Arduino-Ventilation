@@ -17,7 +17,7 @@ void Sensor::resetMinMax(){
 
 void Sensor::newValue(float val) {
 	value = val;
-	int lenght = 10;
+	int lenght = arrayLenght;
 	for (int i = lenght; i > 0; i--) {
 		values[i] = values[i-1];
 	}
@@ -27,6 +27,34 @@ void Sensor::newValue(float val) {
 	if (val > max) max = val;
 	if (val < min) min = val;
 }
+
+float Sensor::getSlope() {
+	/* https://classroom.synonym.com/f-value-statistics-6039.html */
+
+	int n;			// How many values to make the trendline slope for
+	double A = 0;
+	double B = 0;
+	double C = 0;
+	double D = 0;
+	double Bx = 0;
+	double By = 0;
+	double slope = 0;
+
+	for(int i = 0, x=1; i <= n-1; i++, x++) {
+		A += values[i] * x;
+		Bx += x;
+		By += values[i];
+		C += x*x;
+		D += x;
+	}
+	A *= n;
+	B = Bx * By;
+	C = n * C;
+	D = D * D;
+	slope = (A - B) / (C - D);
+	return (float)slope;
+}
+
 
 Sensor::~Sensor(){}
 
@@ -45,7 +73,9 @@ int AnalogSensor::doAdc(int pin) {
 
 
 
-DigitalTemp::DigitalTemp() {
+DigitalTemp::DigitalTemp(int rPin, int rIndex) {
+	pin = rPin;
+	index = rIndex;
 	unit = "Celsius";
 }
 DigitalTemp::DigitalTemp(int rPin) { 
@@ -115,34 +145,6 @@ void CurrentSensor::read() {
 
 
 
-//	*********************** SERIAL PRINT ***************************
-//  Message is formatted for use with Telemetry viewer. Use a layout2 in Telemetry folder.
-// TODO: add light sensor
 
-if (enableSerialPrint == 1){
-	
-	char outside_text[30];
-	char panel_text[30];
-	char air_text[30];
-	char room_text[30];
-	char filtered_text[30];
-	char voltage_text[30];
-	char current_text[30];
-	char tdelta_text[30];
-	char m1speed_text[30];
-
-	dtostrf(temp0C, 10, 10, outside_text);
-	dtostrf(temp1C, 10, 10, panel_text);
-	dtostrf(temp2C, 10, 10, air_text);
-	dtostrf(temp3C, 10, 10, room_text);
-	dtostrf(filteredSignal, 10, 10, filtered_text);
-	dtostrf(voltage, 10, 10, voltage_text);
-	dtostrf(current, 10, 10, current_text);
-	dtostrf(tempDelta, 10, 10, tdelta_text);
-	dtostrf(M1Speed, 10, 10, m1speed_text);
-
-	char text[280];
-	snprintf(text, 280, "%s,%s,%s,%s,%s,%s,%s,%s,%s", outside_text, panel_text, air_text, room_text, voltage_text, current_text,filtered_text,tdelta_text,m1speed_text);
-	Serial.println(text);
 }	
 */
