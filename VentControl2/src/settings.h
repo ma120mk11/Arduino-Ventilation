@@ -2,9 +2,13 @@
 #define SETTINGS_H
 
 // Enable features
-#define DEBUG 1
-#define NEXTION 1
-#define THINGSPEAK 1
+#define DEBUG
+#define VERBOSE_DB
+//#define NEXTION
+#define THINGSPEAK 
+#define EEPROM_STORE 
+//#define TELEMETRY 
+
 
 //************************    PINS    *********************************
 // USE TX2 for Nextion display communication
@@ -31,7 +35,6 @@
 #ifdef EXTERNAL_SD
     #define chipSelect 53		// pin for SD card chip select (see SD_card.h)
 #endif
-
 #ifdef CYTRON_SD
     #define chipSelect 4        // pin for SD card on Wifi shield
 #endif
@@ -54,7 +57,8 @@
 
 #define light_max_Reading 900   // The adc value when full light MAX = 1023
 
-#define pinReference 5      // The measured value of +5V pin
+#define pinReference 5          // The measured value of +5V pin
+
 // *****************  THINGSPEAK **********************
 #define CHANNEL_ID 1327374
 #define CHANNEL_API_KEY "SYJB15HBTE9V8CWR"
@@ -70,6 +74,10 @@
 #ifdef DEBUG
     #define DBPRINT(...) Serial.print(__VA_ARGS__)
     #define DBPRINT_LN(...) Serial.println(__VA_ARGS__)
+    #ifdef VERBOSE_DB
+        #define verboseDb(a) Serial.print(a)
+        #define verboseDbln(a) Serial.println(a)
+    #endif
 #endif
 #ifdef NEXTION
     #define NEXPRINT(...) Serial2.println(__VA_ARGS__)
