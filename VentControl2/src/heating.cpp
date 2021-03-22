@@ -3,9 +3,10 @@
 
 int n = HYSTERESIS;
 int k = HYSTERESIS;
-int autoCyckle = 0;
+int autoCyckle = HYSTERESIS;
 
 void heating() {
+	
 	// Check if heating is enabled
 	if (enableHeating == 1)
 	{
