@@ -14,6 +14,7 @@
 #include <CytronWiFiShield.h>
 #include <CytronWiFiClient.h>
 
+
 Motor motor1(MOTOR1);				// Heated air
 Motor motor2(MOTOR2);				// Cool air
 DigitalTemp	t_Outside(T_OUTSIDE);
@@ -29,6 +30,9 @@ const char *pass = "3665d14cd73b";
 ESP8266Client client;					// WIFI client
 
 DS1302 rtc(RTC_RST, RTC_SCL, RTC_IO);	// Initialize rtc object
+
+OneWire oneWirePin(outside_temp_pin);
+DallasTemperature sensors(&oneWirePin);
 
 //***********************  SETTINGS  ***************************
 //bool enableSerialPrint = 0;		// Turn on/off printing sensor values to serial 1
@@ -56,10 +60,11 @@ bool errorPending = 0;			//
 
 int nextionPage;				// the page that is currently active
 int nextionMode;				// the active mode
-
+float temperature; // for debug
 int prevDay;
 unsigned long loop_timer_1s;
 unsigned long loop_timer_3s;
+unsigned long loop_timer_5s;
 unsigned long loop_timer_1min;
 
 void RtcInit() {
@@ -404,6 +409,8 @@ void setup() {
 	Serial2.begin(9600);
 	delay(400);
 	DBPRINT_LN("Starting Setup...");
+	// sensors.begin();
+	DigitalTemp::tempInit();
 
 	#ifdef EEPROM_STORE
 		DBPRINT("Reading EEPROM...");
@@ -435,7 +442,7 @@ void setup() {
 	pinMode(MOTOR1, OUTPUT);           	// set motor as output
 	pinMode(MOTOR2, OUTPUT);           	// set motor as output
 	readSensors();
-	SD_Card_INIT();
+	// SD_Card_INIT();
 
 	#ifdef THINGSPEAK
 		WifiInit();
@@ -499,18 +506,26 @@ void loop() {
 		nexLoop(nex_listen_list);
 	#endif
 
+
 	// Once every second:
 	if((millis() - loop_timer_1s) > ONE_SEC){
-
+		
 
 		loop_timer_1s = millis();		// Reset timer
 	}
 	
-	// Once every 3 seconds
-	if((millis() - loop_timer_3s) > THREE_SEC){
-		// readSensors();
-		// heating();
-		// sysValUpdate();
+	// Once every 5 seconds
+	if((millis() - loop_timer_5s) > FIVE_SEC){
+		readSensors();
+		heating();
+		sysValUpdate();
+
+			
+	
+		String text = (String)t_Outside.getValue() + '\t' + t_Outside.getSlope() + " C/min";
+		verboseDbln(text);
+
+
 
 		#ifdef TELEMETRY
 			//  Message is formatted for use with Telemetry viewer. Use a layout2 in Telemetry folder.
@@ -541,7 +556,7 @@ void loop() {
 			Serial.println(text);
 		#endif
 
-		loop_timer_3s = millis();		// Reset timer
+		loop_timer_5s = millis();		// Reset timer
 	}
 
 	// once every minute
@@ -552,7 +567,7 @@ void loop() {
 		// SD_log(date, time);
 		
 		#ifdef THINGSPEAK
-			DBPRINT("Sending to Thingspeak...");
+			verboseDb("Sending to Thingspeak...");
 			ThingSpeak.setField(1,t_Outside.getValue());
 			ThingSpeak.setField(2,t_Panel.getValue());
 			ThingSpeak.setField(3,t_HeatedAir.getValue());
@@ -562,9 +577,9 @@ void loop() {
 			ThingSpeak.setField(7,motor1.getSpeed());
 			ThingSpeak.setField(8,t_Outside.getValue());	// TODO
 			int status = ThingSpeak.writeFields(CHANNEL_ID,CHANNEL_API_KEY);
-			// Print error to nextion an serial
+			// Print error to nextion and serial
 			if(status != 200){
-				DBPRINT_LN("ERROR");
+				verboseDb("ERROR - ");
 				// 200 - successful.
 				// 404 - Incorrect API key (or invalid ThingSpeak server address)
 				// -101 - Value is out of range or string is too long (> 255 characters)
@@ -617,7 +632,7 @@ void loop() {
 				nextion_goToPage("wifi_error");
 				
 			} 
-			else { DBPRINT_LN("DONE"); }
+			else { verboseDbln("DONE"); }
 		#endif
 
 

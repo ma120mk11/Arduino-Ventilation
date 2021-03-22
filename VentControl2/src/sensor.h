@@ -3,6 +3,8 @@
 #define pinReference 5
 
 #include <Arduino.h>
+#include <DallasTemperature.h>
+#include <OneWire.h>
 
 class Sensor {
     public:
@@ -29,16 +31,17 @@ class Sensor {
         /**
          * https://classroom.synonym.com/calculate-trendline-2709.html
          * 
-         * @return Slope of the trendline
+         * @return Slope of the trendline in unit/min
          */
         float getSlope();
        ~Sensor();
 
     protected:
         void newValue(float);
+
     private:
-        int arrayLenght = 10;
-        float values[10];    
+        int arrayLenght = 12;
+        float values[12];    
 };
 
 class AnalogSensor: public Sensor {
@@ -49,6 +52,7 @@ class AnalogSensor: public Sensor {
 };
 
 class DigitalTemp: public Sensor {
+    
     public:
         DigitalTemp(int rPin);
         /**
@@ -57,10 +61,14 @@ class DigitalTemp: public Sensor {
         */
         DigitalTemp(int rPin, int rIndex);
         void setIndex(int);
-        
+        static void tempInit();
         void read();
+        OneWire oneWirePin;
+	    DallasTemperature sensors;	
     private:
         int index;
+
+	    
 };
 
 class AnalogTemp: public AnalogSensor {

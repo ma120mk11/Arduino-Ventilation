@@ -4,7 +4,7 @@
 // Enable features
 #define DEBUG
 #define VERBOSE_DB
-//#define NEXTION
+#define NEXTION
 #define THINGSPEAK 
 #define EEPROM_STORE 
 //#define TELEMETRY 
@@ -17,10 +17,10 @@
 #define MOTOR2 13			 // motor2 pin DIRECT AIR
 #define outside_temp_pin 52  // DS18B20 digital temperature sensor
 /**
- * Use a 10k resistor between signal and ???
+ * Use a 10k resistor between signal and 5V
 */
 
-#define T_OUTSIDE A4		// LM35 temp sensor0 pin	OUTSIDE TEMP
+#define T_OUTSIDE 52		// LM35 temp sensor0 pin	OUTSIDE TEMP
 #define T_PANEL A1   	    // LM35 temp sensor1 pin  	PANEL TEMP
 #define T_AIR A2   	        // LM35 temp sensor2 pin	HOT AIR
 #define T_LIVINGROOM A3   	// LM35 temp sensor3 pin	LIVING ROOM
@@ -68,6 +68,7 @@
 // ****************  LOOP FUNCTION *********************
 #define ONE_SEC 1000
 #define THREE_SEC 3000
+#define FIVE_SEC 5000
 #define ONE_MIN 60000
 
 

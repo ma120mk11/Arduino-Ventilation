@@ -3,8 +3,7 @@
 //#include "filter.h"
 //#include "settings.h"
 
-#include <DallasTemperature.h>
-#include <OneWire.h>
+
 
 
 void Sensor::setPin(int rPin) { pin = rPin; }
@@ -17,8 +16,8 @@ void Sensor::resetMinMax(){
 
 void Sensor::newValue(float val) {
 	value = val;
-	int lenght = arrayLenght;
-	for (int i = lenght; i > 0; i--) {
+	
+	for (int i = arrayLenght-1; i > 0; i--) {
 		values[i] = values[i-1];
 	}
 	values[0] = val;
@@ -29,9 +28,19 @@ void Sensor::newValue(float val) {
 }
 
 float Sensor::getSlope() {
-	/* https://classroom.synonym.com/f-value-statistics-6039.html */
+	/** https://classroom.synonym.com/f-value-statistics-6039.html
+	 *  
+	 * The array has the latest read value att position [0].
+	 * In this case we want it in the opposite direction 
+	*/
+	float valArray[arrayLenght];
+	
+	// invert array
+	for(int i=0, n = arrayLenght-1; i < arrayLenght; i++, n--){
+		valArray[i] = values[n];
+	}
 
-	int n;			// How many values to make the trendline slope for
+	int n = arrayLenght;			// How many values to make the trendline slope for
 	double A = 0;
 	double B = 0;
 	double C = 0;
@@ -41,9 +50,9 @@ float Sensor::getSlope() {
 	double slope = 0;
 
 	for(int i = 0, x=1; i <= n-1; i++, x++) {
-		A += values[i] * x;
+		A += valArray[i] * x;
 		Bx += x;
-		By += values[i];
+		By += valArray[i];
 		C += x*x;
 		D += x;
 	}
@@ -71,31 +80,36 @@ int AnalogSensor::doAdc(int pin) {
 	return raw;
 }    
 
-
-
+// Create object
 DigitalTemp::DigitalTemp(int rPin, int rIndex) {
 	pin = rPin;
 	index = rIndex;
 	unit = "Celsius";
 }
+
 DigitalTemp::DigitalTemp(int rPin) { 
 	pin = rPin; 
 	unit = "Celsius";
 }
 
+void DigitalTemp::tempInit(){
+	// OneWire oneWirePin(52);
+	// DallasTemperature sensors(&oneWirePin);
+	extern DallasTemperature sensors;
+	sensors.begin();
+}
+
 void DigitalTemp::setIndex(int rIndex) { index = rIndex; }
 
 void DigitalTemp::read(){
-	OneWire oneWirePin(pin);
-	DallasTemperature sensors(&oneWirePin);	
-	sensors.begin();
-	sensors.requestTemperatures();
-	newValue(sensors.requestTemperaturesByIndex(index));
+	extern DallasTemperature sensors;
+	sensors.requestTemperaturesByIndex(0);
+	newValue(sensors.getTempCByIndex(0));
 }
 
 
 
-//AnalogTemp::AnalogTemp();
+
 AnalogTemp::AnalogTemp(int rPin) { pin = rPin; }
 
 void AnalogTemp::read() {
@@ -133,18 +147,6 @@ void CurrentSensor::read() {
 	float temp = (adc * pinReference / 1024.0);
 	temp = temp - pinReference / 2.0;		// Adjust for 0A
 	temp = temp * mVperAmp;
-
+	temp = round(temp * 10.0) / 10.0;
 	newValue(temp);
-	//current = c 	//round(c * 10.0) / 10.0;
 }
-
-/*		
-//	********************** LIGHT SENSOR **************************
-
-	light = (l0 / light_max_Reading) * 100;
-
-
-
-
-}	
-*/
