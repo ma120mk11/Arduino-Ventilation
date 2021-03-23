@@ -2,8 +2,8 @@
 #define SETTINGS_H
 
 // Enable features
-#define DEBUG
-#define VERBOSE_DB
+//#define DEBUG
+//#define VERBOSE_DB
 #define NEXTION
 #define THINGSPEAK 
 #define EEPROM_STORE 
@@ -64,6 +64,10 @@
 #define CHANNEL_API_KEY "SYJB15HBTE9V8CWR"
 
 
+// *****************  MODES **********************
+#define MANUAL 0
+#define HEATING 1
+#define ADVANCED 2
 
 // ****************  LOOP FUNCTION *********************
 #define ONE_SEC 1000
@@ -71,15 +75,31 @@
 #define FIVE_SEC 5000
 #define ONE_MIN 60000
 
+// ****************  ERRORS  *********************
+#define ERR_VOLTAGE     // Low voltage
+#define ERR_CURRENT     
+#define ERR_MOTOR1      // Motor1 didn't start (no current detected)
+#define ERR_MOTOR1      // Motor2 didn't start (no current detected)
+#define ERR_WFIF        // Wifi 
+#define 
+
 
 #ifdef DEBUG
     #define DBPRINT(...) Serial.print(__VA_ARGS__)
     #define DBPRINT_LN(...) Serial.println(__VA_ARGS__)
-    #ifdef VERBOSE_DB
-        #define verboseDb(a) Serial.print(a)
-        #define verboseDbln(a) Serial.println(a)
-    #endif
+#else
+    #define DBPRINT(...) 
+    #define DBPRINT_LN(...)
 #endif
+
+#ifdef VERBOSE_DB
+    #define verboseDb(a) Serial.print(a)
+    #define verboseDbln(a) Serial.println(a)
+#else
+    #define verboseDb(a) 
+    #define verboseDbln(a)  
+#endif
+
 #ifdef NEXTION
     #define NEXPRINT(...) Serial2.println(__VA_ARGS__)
 #endif
