@@ -1,6 +1,6 @@
 #include "Motor.h"
 
-//#include <Arduino.h>
+#include <Arduino.h>
 #include "nextionDisp.h"
 
 Motor::Motor(int pin) { 
@@ -14,6 +14,11 @@ int Motor::getMax()		{ return max; }
 
 void Motor::setSpeed(int s)
 {
+	// Update motor start time
+	if(s > 0 && !isRunning) { startMillis = millis(); }
+	// Update max
+	if(s > max) max = s;
+	
 	if ( s == 5 ){
 		speed = 5;                    // Update global variable
 		isRunning = 1;					// Update global variable	
@@ -129,4 +134,10 @@ void Motor::setSpeed(int s)
 			analogWrite(output_pin, PWM);
 		return;   
 	}
+}
+
+int Motor::getTimeOn() {
+	int timeOn = 0;
+	if (isRunning) timeOn = (millis() - startMillis) / 60000;
+	return timeOn;
 }
