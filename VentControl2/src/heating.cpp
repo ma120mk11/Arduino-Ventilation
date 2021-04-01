@@ -1,39 +1,52 @@
 #include "heating.h"
 #include "settings.h"
+#include "VoltageCheck.h"
 
-int n = HYSTERESIS;
-int k = HYSTERESIS;
-int autoCyckle = HYSTERESIS;
+int stepsUntilOn = HYSTERESIS;
+int stepsUntilOff = HYSTERESIS;
 
 void heating() {
-	
 	// Check if heating is enabled
-	if (enableHeating == 1)
+	if (mode == HEATING)
 	{
-		if (t_Panel.value > tempUpper){
-			n--;
-			if(n<=0){
-				motor1.setSpeed(5);
-				n=autoCyckle;
+		if (voltageCheck()) {
+			// Check if we should turn motor on
+			if (t_Panel.value > tempUpper){
+				stepsUntilOn--;
+				if(stepsUntilOn <= 0) {
+					motor1.setSpeed(5);
+					stepsUntilOn = HYSTERESIS;
+				}
 			}
-		}
 
-		if (t_Panel.value < tempUpper){
-			n=autoCyckle;
-		}
+			if (t_Panel.value < tempUpper){
+				stepsUntilOn = HYSTERESIS;
+			}
 
-		if (t_HeatedAir.value < tempLower && motor1.getSpeed() == 5 ) {
-			if(k<=0){
-				motor1.setSpeed(0);
-				k=autoCyckle;
+			// Turn off
+			if (t_HeatedAir.value < tempLower && motor1.getSpeed() == 5 ) {
+				if (stepsUntilOff <= 0) {
+					motor1.setSpeed(0);
+					stepsUntilOff = HYSTERESIS;
+				}
+				else {
+					stepsUntilOff--;
+				}
 			}
-			else{
-			k--;
+			
+			if (t_HeatedAir.value > tempLower && motor1.getSpeed() == 5 ) {
+				stepsUntilOff = HYSTERESIS;
 			}
 		}
-	  	
-		if (t_HeatedAir.value > tempLower && motor1.getSpeed() == 5 ) {
-			k=autoCyckle;
-		}
+	}
+
+	if (mode == ADVANCED) 
+	{
+		/**
+		 * 
+		 *  
+		*/
+		t_Delta.getSlope();
+
 	}
 }
