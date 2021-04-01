@@ -1,9 +1,6 @@
 #include "sensor.h"
 
-//#include "filter.h"
 //#include "settings.h"
-
-
 
 
 void Sensor::setPin(int rPin) { pin = rPin; }
@@ -25,6 +22,8 @@ void Sensor::newValue(float val) {
 	// Update min and max value
 	if (val > max) max = val;
 	if (val < min) min = val;
+
+
 }
 
 float Sensor::getSlope() {
@@ -64,6 +63,10 @@ float Sensor::getSlope() {
 	return (float)slope;
 }
 
+bool Sensor::checkValue(float valToCheck) {
+	if(abs(values[1] - valToCheck) > 10) return false;
+	else return true;
+}
 
 Sensor::~Sensor(){}
 
@@ -101,10 +104,13 @@ void DigitalTemp::tempInit(){
 
 void DigitalTemp::setIndex(int rIndex) { index = rIndex; }
 
-void DigitalTemp::read(){
+bool DigitalTemp::read() {
+	float temp = 0;
 	extern DallasTemperature sensors;
 	sensors.requestTemperaturesByIndex(0);
-	newValue(sensors.getTempCByIndex(0));
+	temp = sensors.getTempCByIndex(0);
+	newValue(temp);
+	return checkValue(temp);
 }
 
 
@@ -112,7 +118,7 @@ void DigitalTemp::read(){
 
 AnalogTemp::AnalogTemp(int rPin) { pin = rPin; }
 
-void AnalogTemp::read() {
+bool AnalogTemp::read() {
 	int adc = doAdc(pin);
 	float temp = 0;
 	// convert to celsius:
@@ -126,27 +132,30 @@ void AnalogTemp::read() {
 	// Round to 1 decimal. round() rounds decimal number to whole number. 
 	temp = round(temp * 10.0) / 10.0;
 	newValue(temp);
+	return checkValue(temp);
 }
 
 
 
 VoltageSensor::VoltageSensor(int rPin) { pin = rPin; }
 
-void VoltageSensor::read() {
+bool VoltageSensor::read() {
 	int adc = doAdc(pin);
 	// Convert to voltage
 	float temp = (adc * pinReference / 1024.0) * 5.0;
 	temp = round(temp * 10.0) / 10.0;
 	newValue(temp);
+	return checkValue(temp);
 }
 
 CurrentSensor::CurrentSensor(int rPin) { pin = rPin; }
 
-void CurrentSensor::read() {
+bool CurrentSensor::read() {
 	int adc = doAdc(pin);
 	float temp = (adc * pinReference / 1024.0);
 	temp = temp - pinReference / 2.0;		// Adjust for 0A
 	temp = temp * mVperAmp;
 	temp = round(temp * 10.0) / 10.0;
 	newValue(temp);
+	return checkValue(temp);
 }

@@ -5,6 +5,7 @@
 #include <Arduino.h>
 #include <DallasTemperature.h>
 #include <OneWire.h>
+// #include "ErrorHandling.h"
 
 class Sensor {
     public:
@@ -20,7 +21,8 @@ class Sensor {
          * To get latest reading use getValue().
          * @return Nothing.
          */
-        void read();
+        bool read();
+
         /**
          * @return the last read value of the sensor in correct unit.
          */
@@ -35,9 +37,9 @@ class Sensor {
          */
         float getSlope();
        ~Sensor();
-
-    protected:
         void newValue(float);
+    protected:
+        bool checkValue(float);        
 
     private:
         int arrayLenght = 12;
@@ -48,6 +50,7 @@ class AnalogSensor: public Sensor {
 	public:
 		int sDly 		= 20;		// Smoothing delay
 		int smoothing	= 10;
+    protected:
         int doAdc(int);
 };
 
@@ -62,13 +65,11 @@ class DigitalTemp: public Sensor {
         DigitalTemp(int rPin, int rIndex);
         void setIndex(int);
         static void tempInit();
-        void read();
+        bool read();
         OneWire oneWirePin;
 	    DallasTemperature sensors;	
     private:
-        int index;
-
-	    
+        int index;  
 };
 
 class AnalogTemp: public AnalogSensor {
@@ -77,15 +78,13 @@ class AnalogTemp: public AnalogSensor {
         AnalogTemp(int);
         bool opAmp = false;
 		float gain = 10.9395;		// For sensors with opAmps
-        void read();
-    private:
-
+        bool read();
 };
 
 class VoltageSensor: public AnalogSensor {
     public:
         VoltageSensor(int);
-        void read();
+        bool read();
 };
 
 class CurrentSensor: public AnalogSensor {
@@ -96,7 +95,7 @@ class CurrentSensor: public AnalogSensor {
     public:
         CurrentSensor();
         CurrentSensor(int);     // 
-        void read();            // reads sensor and stores it in value
+        bool read();            // reads sensor and stores it in value
 
     private:
         static const int mVperAmp = 10;		// 20A module
