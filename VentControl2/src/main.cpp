@@ -13,7 +13,8 @@
 #include <ThingSpeak.h>
 #include <CytronWiFiShield.h>
 #include <CytronWiFiClient.h>
-
+#include "ErrorHandling.h"
+#include "VoltageCheck.h"
 
 Motor motor1(MOTOR1);				// Heated air
 Motor motor2(MOTOR2);				// Cool air
@@ -23,6 +24,7 @@ AnalogTemp 	t_HeatedAir(T_AIR);
 AnalogTemp	t_Inside(T_LIVINGROOM);
 CurrentSensor current(CURRENT);		
 VoltageSensor voltage(VOLTAGE);
+Sensor t_Delta;						
 
 const char *ssid = "HUAWEI P20 Pro";
 const char *pass = "3665d14cd73b";
@@ -37,14 +39,15 @@ DallasTemperature sensors(&oneWirePin);
 //***********************  SETTINGS  ***************************
 //bool enableSerialPrint = 0;		// Turn on/off printing sensor values to serial 1
 //bool sendToNextion 	= 1;		// Turn on/off sending sensor values to nextion (serial 2)
-bool allow2motors 	= 0;		// Nextion setting, set default value here
-bool enableHeating 	= 1;		// Enable AUTO setting for motor 1
-int tempUpper = 40;				// At which temperature to start motor
-int tempLower = 30;				// At which temp to stop motor
+bool allow2motors 	= 0;			// Nextion setting, set default value here
+int mode = 1;						// System mode
+int tempUpper = 39;					// At which temperature to start motor
+int tempLower = 30;					// At which temp to stop motor
 
 struct eepromVariables {
 	int tempUpper;
 	int tempLower;
+	int mode;
 	float e_voltageThr;
 };
 			
@@ -52,20 +55,19 @@ struct eepromVariables {
 float e_voltageThr = 10.7;    	// If voltage goes under this value, send error message
 
 // **********************  VARIABLES  ****************************
-float derivate;					// The derivate of panel temperature
+//float derivate;					// The derivate of panel temperature
 float tempDelta;				// How much the temperature is increased when flowing through panel
 
-int voltageErrorCount = 0;		// 
-bool errorPending = 0;			//
+static bool errorPending        = 0;
+
 
 int nextionPage;				// the page that is currently active
 int nextionMode;				// the active mode
 float temperature; // for debug
-int prevDay;
-unsigned long loop_timer_1s;
-unsigned long loop_timer_3s;
-unsigned long loop_timer_5s;
-unsigned long loop_timer_1min;
+
+
+
+
 
 void RtcInit() {
 	DBPRINT("Initializing RTC...");
@@ -91,7 +93,11 @@ void WifiInit() {
   	{
     	DBPRINT_LN(F("Error connecting to WiFi"));
   	}
-	else{ DBPRINT_LN("DONE"); }
+	else{ 
+		DBPRINT_LN("DONE"); 
+		nextion_update("data.wifi_status.val=", 1);
+		nextion_update("wifi_sett.status.txt=", "Connected to: " + (String)ssid);
+	}
 }
 
 void storeEEPROM() {
@@ -101,6 +107,7 @@ void storeEEPROM() {
 		eeStore.e_voltageThr = e_voltageThr;
 		eeStore.tempLower = tempLower;
 		eeStore.tempUpper = tempUpper;
+		eeStore.mode = mode;
 		int eeAddress = 0;
 		EEPROM.put(eeAddress, eeStore);
 
@@ -109,14 +116,15 @@ void storeEEPROM() {
 }
 
 void readSensors() {
-	t_Outside.read();
-	t_Panel.read();
-	t_HeatedAir.read();
-	t_Inside.read();
-	current.read();
-	voltage.read();
+	if(!t_Outside.read()) 	createError(ERR_TEMP_OUTSIDE);
+	if(!t_Panel.read()) 	createError(ERR_TEMP_PANEL);
+	if(!t_HeatedAir.read())	createError(ERR_TEMP_AIR);	
+	if(!t_Inside.read())	createError(ERR_TEMP_INSIDE);
+	if(!current.read())		createError(ERR_CURRENT);
+	if(!voltage.read())		createError(ERR_VOLTAGE);
 
 	tempDelta = t_HeatedAir.value - t_Outside.value;
+	t_Delta.newValue(tempDelta);
 }
 
 #pragma region nextion
@@ -239,9 +247,9 @@ NULL
 
 // ********** MENU **********
 void springHeatPopCallback(void *ptr){
-	enableHeating = 1;
-	DBPRINT("Enabled Heating on display. enableHeating = ");
-	DBPRINT_LN(enableHeating);
+	mode = HEATING;
+	DBPRINT("Enabled Heating on display. Mode = ");
+	DBPRINT_LN(mode);
 }
 
 void setTimePopCallback(void *ptr){
@@ -264,7 +272,6 @@ void setTimePopCallback(void *ptr){
 // 1-button release function
 	void bMS1PopCallback(void *ptr){
 		motor1.setSpeed(1);                		// Sets motor speed
-		dbSerialPrintln("Page4-Button-1");
 	}	
 // 2-button release function
 	void bMS2PopCallback(void *ptr){
@@ -297,7 +304,6 @@ void setTimePopCallback(void *ptr){
 // 1-button release function
 	void bM2S1PopCallback(void *ptr){
 		motor2.setSpeed(1);                	// Sets motor speed
-		dbSerialPrintln("Page5-Button-1");
 	}
 // 2-button release function
 	void bM2S2PopCallback(void *ptr){
@@ -327,7 +333,7 @@ void setTimePopCallback(void *ptr){
 	}
 // PAGE 6 SPRING HEATING
 	void springExitPopCallback(void *ptr){
-		enableHeating = 0;
+		mode = MANUAL;
 		motor1.setSpeed(0);
 	}
 // Upper temp decrease
@@ -376,11 +382,11 @@ void setTimePopCallback(void *ptr){
 	}
 // 14 Voltage error
 	void v_err_exitPopCallback(void *ptr){
-		errorPending=0;
-		enableHeating=0;					// Turn off heating
+		dismissVoltageError();
+		mode = MANUAL;					// Turn off heating
 	}
 	void ignorePopCallback(void *ptr){
-		errorPending=0;
+		dismissVoltageError();
 	}
 // 15 - settings 2
 	void v_errDecPopCallback(void *ptr){
@@ -409,7 +415,7 @@ void setup() {
 	Serial2.begin(9600);
 	delay(400);
 	DBPRINT_LN("Starting Setup...");
-	// sensors.begin();
+
 	DigitalTemp::tempInit();
 
 	#ifdef EEPROM_STORE
@@ -417,24 +423,27 @@ void setup() {
 		eepromVariables eeRead;
 		int eeAddress = 0;
 		EEPROM.get(eeAddress, eeRead);
-		e_voltageThr = eeRead.e_voltageThr;
-		tempUpper = eeRead.tempUpper;
-		tempLower = eeRead.tempLower;
+		
 
-		// // Check for errors
-		// if (int1 > 0 && int1 < 80 && int2 > 0 && int2 < 80 && float1 > 8 && float1 < 20) {
-		// 	tempLower = int1;
-		// 	tempUpper = int2;
-		// 	e_voltageThr = float1;
-			DBPRINT_LN("DONE");
-		// }
-		// else { DBPRINT_LN("ERROR - using deafult values."); }
+		// Check for errors
+		if (eeRead.tempLower > 0 && eeRead.tempLower < 80 && 
+			eeRead.tempUpper > 0 && eeRead.tempUpper < 80 && 
+			eeRead.e_voltageThr > 8 && eeRead.e_voltageThr < 20) {
+
+				e_voltageThr = eeRead.e_voltageThr;
+				tempUpper = eeRead.tempUpper;
+				tempLower = eeRead.tempLower;
+				mode = eeRead.mode;
+				DBPRINT_LN("DONE");
+		}
+		else { DBPRINT_LN("ERROR - using deafult values."); }
+
 	#endif
 	#ifdef NEXTION
 		DBPRINT("Initializing nextion display...");
 		bool isInitialized = nexInit();					// Initialize nextion display
 		nextion_goToPage("ardu_restart");				// Notify the display that arduino was restarted
-		nextion_update("settings_2.v_err.val=", e_voltageThr*10);
+		nextion_update("settings_2.v_err.val=", (e_voltageThr*10));
 		if(isInitialized)DBPRINT_LN("DONE");
 		else DBPRINT_LN("ERROR");
 	#endif
@@ -498,8 +507,14 @@ void loop() {
 	* TODO:
 	* - Periodically run the motor for a specified time automatically. 
 	* - What happens if RTC card fails?
+	* - What happens if SD card fails?
 	*/
-	//DateTime now = rtc.now();
+	DateTime now = rtc.now();
+
+	static unsigned long loop_timer_1s;
+	static unsigned long loop_timer_3s;
+	static unsigned long loop_timer_5s;
+	static unsigned long loop_timer_1min;
 
 	// Every cycle:
 	#ifdef NEXTION
@@ -559,6 +574,7 @@ void loop() {
 		loop_timer_5s = millis();		// Reset timer
 	}
 
+	
 	// once every minute
 	if(millis() - loop_timer_1min > ONE_MIN){
 		// String date = String(now.day()) + "." + String(now.month()) + "." + String(now.year());
@@ -577,69 +593,20 @@ void loop() {
 			ThingSpeak.setField(7,motor1.getSpeed());
 			ThingSpeak.setField(8,t_Outside.getValue());	// TODO
 			int status = ThingSpeak.writeFields(CHANNEL_ID,CHANNEL_API_KEY);
+
 			// Print error to nextion and serial
-			if(status != 200){
+			if(status != 200) {
 				verboseDb("ERROR - ");
-				// 200 - successful.
-				// 404 - Incorrect API key (or invalid ThingSpeak server address)
-				// -101 - Value is out of range or string is too long (> 255 characters)
-				// -201 - Invalid field number specified
-				// -210 - setField() was not called before writeFields()
-				// -301 - Failed to connect to ThingSpeak
-				// -302 - Unexpected failure during write to ThingSpeak
-				// -303 - Unable to parse response
-				// -304 - Timeout waiting for server to respond
-				// -401 - Point was not inserted (most probable cause is the rate limit of once every 15 seconds)
-				switch (status)
-				{
-				case 404:
-					verboseDbln("incorrect API key");
-					nextion_update("wifi_error.message.txt", "404 Thingspeak-incorrect API key.");
-					break;
-				case -101:
-					verboseDbln("value out of range or string is too long");
-					nextion_update("wifi_error.message.txt", "- 101 Thingspeak-value out of range.");
-					break;
-				case -210:
-					verboseDbln("setField() was not called before writeFields()");
-					nextion_update("wifi_error.message.txt", "-210 Error");
-					break;
-				case -301:
-					verboseDbln("Failed to connect to ThingSpeak");
-					nextion_update("wifi_error.message.txt", "-301 Failed to connect to ThingSpeak");
-					break;
-				case -302:
-					verboseDbln("Unexpected failure during write to ThingSpeak");
-					nextion_update("wifi_error.message.txt", "-302 Error");
-					break;
-				case -303:
-					verboseDbln("Unable to parse response");
-					nextion_update("wifi_error.message.txt", "-303 Error");
-					break;
-				case -304:
-					verboseDbln("Timeout waiting for server to respond");
-					nextion_update("wifi_error.message.txt", "-304 Error");
-					break;
-				case -401:
-					verboseDbln("Point was not inserted (rate lilit of 15s?)");
-					nextion_update("wifi_error.message.txt", "-401 Error");
-					break;
-				default:
-					verboseDbln("unknown error");
-					nextion_update("wifi_error.message.txt", "Unknown thingspeak error.");
-					break;
-				}
-				nextion_goToPage("wifi_error");
-				
-			} 
+				createError(ERR_THINKSPEAK, (String)status);
+			}
 			else { verboseDbln("DONE"); }
+
 		#endif
-
-
 
 		loop_timer_1min = millis();
 	}
 
+	static int prevDay;
 	// //Once every day
 	// if(now.day() != prevDay){
 	// 	#ifdef NEXTION
