@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include "nextionDisp.h"
+#include "ErrorHandling.h"
 
 Motor::Motor(int pin) { 
 	output_pin = pin;
@@ -18,7 +19,9 @@ void Motor::setSpeed(int s)
 	if(s > 0 && !isRunning) { startMillis = millis(); }
 	// Update max
 	if(s > max) max = s;
-	
+
+	verboseDbln("Motor on pin " + pin + " set to " + s);
+
 	if ( s == 5 ){
 		speed = 5;                    // Update global variable
 		isRunning = 1;					// Update global variable	
@@ -28,7 +31,12 @@ void Motor::setSpeed(int s)
 			PWM = PWM + 5;
 			analogWrite(output_pin, PWM);
 			delay(dly);                  // optional delay
-		}  
+		}
+		current.read();
+
+		// Check that motor starts
+		if(current.getValue() > noCurrentThr) createError(ERR_MOTOR);
+
 		return;   
 	} // end of 5
 
@@ -51,6 +59,9 @@ void Motor::setSpeed(int s)
 				delay(dly);                 //optional delay
 			}
 		}
+
+		// Check that motor starts
+		if(current.getValue() > noCurrentThr) createError(ERR_MOTOR);
 		return;
 	} // end of 4
 
@@ -73,6 +84,8 @@ void Motor::setSpeed(int s)
 				delay(dly);                  //optional delay
 			}
 		}
+		// Check that motor starts
+		if(current.getValue() > noCurrentThr) createError(ERR_MOTOR);
 		return;  
 	} // end of 3
 
@@ -95,6 +108,8 @@ void Motor::setSpeed(int s)
 				delay(dly);                 //optional delay
 			}
 		}
+		// Check that motor starts
+		if(current.getValue() > noCurrentThr) createError(ERR_MOTOR);		
 		return;   
 	} // end of 2
 
@@ -117,6 +132,8 @@ void Motor::setSpeed(int s)
 				delay(dly);                 //optional delay
 			}
 		}
+		// Check that motor starts
+		if(current.getValue() > noCurrentThr) createError(ERR_MOTOR);		
 		return;
 	} // end of 1
 

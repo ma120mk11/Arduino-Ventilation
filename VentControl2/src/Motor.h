@@ -15,6 +15,7 @@ class Motor{
 		int output_pin = 9;
 		int max = 0;
         unsigned long startMillis;
+        float noCurrentThr = 2.0;   // 
 
         // PWM SETTINGS :
         static const int s1 = 70;				// motor PWM value at setting 1
