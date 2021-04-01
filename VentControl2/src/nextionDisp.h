@@ -21,8 +21,8 @@ extern VoltageSensor voltage;
 extern float tempDelta;			
 extern int nextionPage;			
 extern int nextionMode;				
-extern int voltageErrorCount;	
-extern bool enableHeating;
+//extern int voltageErrorCount;	
+extern int mode;
 extern int tempUpper, tempLower;
 
 

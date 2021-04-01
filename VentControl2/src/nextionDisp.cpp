@@ -1,41 +1,48 @@
 #include "nextionDisp.h"
 
+/**
+ * @param page ex: "12"
+ */
 void nextion_goToPage(String page){
 	#ifdef NEXTION
-    Serial2.print("page ");
-    Serial2.print(page);
-    Serial2.write(0xff);
-    Serial2.write(0xff);
-    Serial2.write(0xff);
+    nexSerial.print("page ");
+    nexSerial.print(page);
+    nexSerial.write(0xff);
+    nexSerial.write(0xff);
+    nexSerial.write(0xff);
 	#endif
 }
+/**
+ * @param object Ex. "data.sd_ok.val="
+ * @param value Ex. 23.0
+ */
 void nextion_update(String object, float value){
 	#ifdef NEXTION
-    Serial2.print(object);
-    Serial2.print(value);
-    Serial2.write(0xff);
-    Serial2.write(0xff);
-    Serial2.write(0xff);
+    nexSerial.print(object);
+    nexSerial.print(value);
+    nexSerial.write(0xff);
+    nexSerial.write(0xff);
+    nexSerial.write(0xff);
 	#endif
 }	
 void nextion_update(String object, int value){
 	#ifdef NEXTION
-    Serial2.print(object);
-    Serial2.print(value);
-    Serial2.write(0xff);
-    Serial2.write(0xff);
-    Serial2.write(0xff);
+    nexSerial.print(object);
+    nexSerial.print(value);
+    nexSerial.write(0xff);
+    nexSerial.write(0xff);
+    nexSerial.write(0xff);
 	#endif
 }
 void nextion_update(String object, String message){
 	#ifdef NEXTION
-    Serial2.print(object);
-	Serial2.print("\"");
-    Serial2.print(message);
-	Serial2.print("\"");
-    Serial2.write(0xff);
-    Serial2.write(0xff);
-    Serial2.write(0xff);
+    nexSerial.print(object);
+	nexSerial.print("\"");
+    nexSerial.print(message);
+	nexSerial.print("\"");
+    nexSerial.write(0xff);
+    nexSerial.write(0xff);
+    nexSerial.write(0xff);
 	#endif
 }
 
@@ -64,7 +71,7 @@ void sysValUpdate(){
 	nextion_update("data.I0.val=", i);
 	nextion_update("data.tDelta.val=", tDelta);
 	//nextion_update("data.L0.val=", light);
-	nextion_update("data.mode.val=", enableHeating);
+	nextion_update("data.mode.val=", mode);
 	
 	#endif
 }
@@ -72,10 +79,10 @@ void sysValUpdate(){
 void NEXsensor_maxUpdate(){
 	#ifdef NEXTION
 	// Updates recorded sensor max values to nextion
-	int t0_max = motor1.getMax()* 10;
-	int t1_max = t_Outside.max 	* 10;
-	int t2_max = t_Panel.max	* 10;
-	int t3_max = t_HeatedAir.max* 10;
+	int t0_max = t_Outside.max	* 10;
+	int t1_max = t_Panel.max 	* 10;
+	int t2_max = t_HeatedAir.max* 10;
+	int t3_max = t_Inside.max	* 10;
 	int v_max  = voltage.max	* 10;
 	int v_min  = voltage.min 	* 10;
 	int i_max  = current.max 	* 10;
