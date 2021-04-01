@@ -4,6 +4,7 @@
 // Enable features
 //#define DEBUG
 //#define VERBOSE_DB
+#define PRINT_ERRORS
 #define NEXTION
 #define THINGSPEAK 
 #define EEPROM_STORE 
@@ -59,6 +60,8 @@
 
 #define pinReference 5          // The measured value of +5V pin
 
+#define TEMP_ERR_THR 75
+
 // *****************  THINGSPEAK **********************
 #define CHANNEL_ID 1327374
 #define CHANNEL_API_KEY "SYJB15HBTE9V8CWR"
@@ -75,14 +78,12 @@
 #define FIVE_SEC 5000
 #define ONE_MIN 60000
 
-// ****************  ERRORS  *********************
-#define ERR_VOLTAGE     // Low voltage
-#define ERR_CURRENT     
-#define ERR_MOTOR1      // Motor1 didn't start (no current detected)
-#define ERR_MOTOR1      // Motor2 didn't start (no current detected)
-#define ERR_WFIF        // Wifi 
-#define 
 
+#ifdef PRINT_ERRORS
+    #define errorPrint(a) Serial.println(a)
+#else
+    #define errorPrint(a)
+#endif
 
 #ifdef DEBUG
     #define DBPRINT(...) Serial.print(__VA_ARGS__)
