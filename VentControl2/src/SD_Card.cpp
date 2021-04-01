@@ -6,7 +6,7 @@ bool unmountedFlag = 0;
 
 // Headers to the CSV files:
 String headers = "date,time,outside,panel,heated-air,room,voltage,current,motorSpeed";		// datalog.csv
-String errorHeaders = "date,time,error";
+String errorHeaders = "date,time,errorType,msg,errortypecount";
 String reportHeaders = "date,xxx,xxx,xxx";
 
 void SD_Card_INIT() {
@@ -44,7 +44,7 @@ void SD_Card_INIT() {
 	}
 
 	// ERROR LIST
-	exists = SD.exists("errorLog.csv");						// Check if file exists
+	exists = SD.exists("errorlog.csv");						// Check if file exists
 	File errorList = SD.open("errorlog.csv", FILE_WRITE);	// Open file
 	// if the file is available, write to it:
 	if(errorList){
@@ -95,22 +95,58 @@ void SD_log(String date, String time){
 		if (dataFile) {
 			dataFile.println(dataString);
 			dataFile.close();
-			sd_errorFlag = 0;		// Reset error flag
+			// sd_errorFlag = 0;		// Reset error flag
+
 		}
 
 		// if the file isn't open, pop up an error:
 		else {
-			if(sd_errorFlag == 0){
-				DBPRINT_LN("error opening datalog.csv");
-				SD_Card_Error("Could not write to csv file");
-				nextion_update("sd_card_sett.sdStatus.txt=", "Could not write to csv file");
-				nextion_update("data.sd_status.val=", 0);		// Update sd status
-				// Set to 1 so we dont get an error every cycle if no card is present
-				sd_errorFlag = 1;			
-			}
+			createError(ERR_SD, "Could not write to csv file");
+			// if(sd_errorFlag == 0){
+			// 	DBPRINT_LN("error opening datalog.csv");
+			// 	SD_Card_Error("Could not write to csv file");
+			// 	nextion_update("sd_card_sett.sdStatus.txt=", "Could not write to csv file");
+			// 	nextion_update("data.sd_status.val=", 0);		// Update sd status
+			// 	// Set to 1 so we dont get an error every cycle if no card is present
+			// 	sd_errorFlag = 1;			
+			// }
 		} 
 	}
 }
+
+
+void SD_errorlog(int ErrorType, String msg, int count, String date = "", String time = ""){
+	// Don't try to open and write to the file if card was unmounted
+	if(unmountedFlag==0){	
+		
+		String dataString = "";
+		
+		dataString += date;
+		dataString += ",";
+		dataString += time;
+		dataString += ",";
+		dataString += ErrorType;
+		dataString += msg;
+		dataString += count;
+		
+		// open the file. note that only one file can be open at a time,
+		// so you have to close this one before opening another.
+		File dataFile = SD.open("errorlog.csv", FILE_WRITE);
+
+		// if the file is available, write to it:
+		if (dataFile) {
+			dataFile.println(dataString);
+			dataFile.close();
+			clearError(ERR_SD);
+		}
+
+		// if the file isn't open, pop up an error:
+		else {
+			createError(ERR_SD, "Could not write to csv file");
+		} 
+	}
+}
+
 
 void SD_unmount() {
 	SD.end();
