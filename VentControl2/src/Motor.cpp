@@ -20,7 +20,7 @@ void Motor::setSpeed(int s)
 	// Update max
 	if(s > max) max = s;
 
-	verboseDbln("Motor on pin " + pin + " set to " + s);
+	verboseDbln("Motor on pin " + (String)output_pin + " set to " + s);
 
 	if ( s == 5 ){
 		speed = 5;                    // Update global variable
