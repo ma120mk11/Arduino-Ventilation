@@ -2,12 +2,12 @@
 #define SETTINGS_H
 
 // Enable features
-//#define DEBUG
-//#define VERBOSE_DB
+#define DEBUG
+#define VERBOSE_DB
 #define PRINT_ERRORS
-#define NEXTION
-#define THINGSPEAK 
-#define EEPROM_STORE 
+// #define NEXTION
+// #define THINGSPEAK 
+// #define EEPROM_STORE 
 //#define TELEMETRY 
 
 
@@ -25,7 +25,7 @@
 #define T_PANEL A1   	    // LM35 temp sensor1 pin  	PANEL TEMP
 #define T_AIR A2   	        // LM35 temp sensor2 pin	HOT AIR
 #define T_LIVINGROOM A3   	// LM35 temp sensor3 pin	LIVING ROOM
-#define CURRENT A7          // Current sensor pin
+#define CURRENT A5          // Current sensor pin
 #define VOLTAGE A8          // Voltage sensor pin
 #define LightSensorPin A9   // Light sensor pin
 
