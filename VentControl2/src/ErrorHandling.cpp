@@ -19,19 +19,38 @@ void createError(int ErrorType, String msg = "")
     {
     case ERR_VOLTAGE:
         nextion_goToPage("voltage_error");
+        errorText = "Voltage";
         break;
     case ERR_CURRENT:
+        errorText = "Current";
         break;
     case ERR_MOTOR:
+        errorText = "Motor";
+        break;
     case ERR_WFIFI:
+        errorText = "Wifi";
+        break;
     case ERR_SD:
+        errorText = "SD";
+        break;
     case ERR_RTC:
+        errorText = "RTC";
+        break;
     case ERR_NEXTION:
+        errorText = "Nextion";
+        break;
     case ERR_TEMP_OUTSIDE:
+        errorText = "Temperature sensor outside";
+        break;
     case ERR_TEMP_PANEL:
+        errorText = "Temperature sensor panel";
+        break;
     case ERR_TEMP_AIR:
+        errorText = "Temperature sensor heated air";
+        break;
     case ERR_TEMP_INSIDE:
-
+        errorText = "Temperature sensor inside";
+        break;
     case ERR_THINKSPEAK:
         switch (msg.toInt())
         {
@@ -68,7 +87,7 @@ void createError(int ErrorType, String msg = "")
         break;
   
     default:
-
+        errorText = "Unknown error";
         break;
     }
 
