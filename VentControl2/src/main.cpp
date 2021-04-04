@@ -26,7 +26,7 @@ CurrentSensor current(CURRENT);
 VoltageSensor voltage(VOLTAGE);
 Sensor t_Delta;						
 
-const char *ssid = "HUAWEI P20 Pro";
+const char *ssid = "HUAWEIP20Pro";
 const char *pass = "3665d14cd73b";
 
 ESP8266Client client;					// WIFI client
@@ -41,8 +41,8 @@ DallasTemperature sensors(&oneWirePin);
 //bool sendToNextion 	= 1;		// Turn on/off sending sensor values to nextion (serial 2)
 bool allow2motors 	= 0;			// Nextion setting, set default value here
 int mode = 1;						// System mode
-int tempUpper = 39;					// At which temperature to start motor
-int tempLower = 30;					// At which temp to stop motor
+int tempUpper = 30;					// At which temperature to start motor
+int tempLower = 25;					// At which temp to stop motor
 
 struct eepromVariables {
 	int tempUpper;
@@ -58,7 +58,7 @@ float e_voltageThr = 10.7;    	// If voltage goes under this value, send error m
 //float derivate;					// The derivate of panel temperature
 float tempDelta;				// How much the temperature is increased when flowing through panel
 
-static bool errorPending        = 0;
+bool errorPending        = 0;
 
 
 int nextionPage;				// the page that is currently active
@@ -72,6 +72,7 @@ float temperature; // for debug
 void RtcInit() {
 	DBPRINT("Initializing RTC...");
 	rtc.begin();
+	rtc.adjust(DateTime(__DATE__,__TIME__));
 	if(!rtc.isrunning()) {
 		rtc.adjust(DateTime(__DATE__,__TIME__));
 		DateTime now = rtc.now();
@@ -81,7 +82,12 @@ void RtcInit() {
 			DBPRINT_LN("ERROR");
 		}
 		else verboseDbln("adjusted to " + date + "  " + time);
-	} else DBPRINT_LN("DONE");
+	} else {
+		DateTime now = rtc.now();
+		String date = String(now.day()) + "." + String(now.month()) + "." + String(now.year());
+		String time = String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second());
+		DBPRINT_LN("DONE - " + date + time);
+	}
 }
 
 void WifiInit() {
@@ -113,6 +119,18 @@ void storeEEPROM() {
 
 		DBPRINT_LN("DONE");
 	#endif
+}
+
+void init_sensors(){
+	t_Outside.read();
+	t_Panel.read();
+	t_HeatedAir.read();
+	t_Inside.read();
+	current.read();
+	voltage.read();
+
+	tempDelta = t_HeatedAir.value - t_Outside.value;
+	t_Delta.newValue(tempDelta);
 }
 
 void readSensors() {
@@ -415,7 +433,7 @@ void setup() {
 	Serial2.begin(9600);
 	delay(400);
 	DBPRINT_LN("Starting Setup...");
-
+	SD_Card_INIT();
 	DigitalTemp::tempInit();
 
 	#ifdef EEPROM_STORE
@@ -423,7 +441,8 @@ void setup() {
 		eepromVariables eeRead;
 		int eeAddress = 0;
 		EEPROM.get(eeAddress, eeRead);
-		
+		delay(500);
+		verboseDbln("Read eeprom");
 
 		// Check for errors
 		if (eeRead.tempLower > 0 && eeRead.tempLower < 80 && 
@@ -450,8 +469,8 @@ void setup() {
 	RtcInit();
 	pinMode(MOTOR1, OUTPUT);           	// set motor as output
 	pinMode(MOTOR2, OUTPUT);           	// set motor as output
-	readSensors();
-	// SD_Card_INIT();
+	init_sensors();
+	
 
 	#ifdef THINGSPEAK
 		WifiInit();
@@ -539,6 +558,16 @@ void loop() {
 	
 		String text = (String)t_Outside.getValue() + '\t' + t_Outside.getSlope() + " C/min";
 		verboseDbln(text);
+		text = (String)t_Panel.getValue() + '\t' + t_Panel.getSlope() + " C/min";
+		verboseDbln(text);
+		text = (String)t_HeatedAir.getValue() + '\t' + t_HeatedAir.getSlope() + " C/min";
+		verboseDbln(text);
+		text = (String)t_Inside.getValue() + '\t' + t_Inside.getSlope() + " C/min";
+		verboseDbln(text);
+		text = (String)voltage.getValue() + '\t' + voltage.getSlope() + " V/min";
+		verboseDbln(text);
+		text = (String)current.getValue() + '\t' + current.getSlope() + " A/min";
+		verboseDbln(text);
 
 
 
@@ -577,10 +606,10 @@ void loop() {
 	
 	// once every minute
 	if(millis() - loop_timer_1min > ONE_MIN){
-		// String date = String(now.day()) + "." + String(now.month()) + "." + String(now.year());
-		// String time = String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second());
+		String date = String(now.day()) + "." + String(now.month()) + "." + String(now.year());
+		String time = String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second());
 
-		// SD_log(date, time);
+		SD_log(date, time);
 		
 		#ifdef THINGSPEAK
 			verboseDb("Sending to Thingspeak...");
