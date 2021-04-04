@@ -19,6 +19,7 @@ void SD_Card_INIT() {
 		SD_Card_Error("SD card failed, or not present");
 		nextion_update("sd_card_sett.sdStatus.txt=", "Could not find SD card");
 		nextion_update("data.sd_status.val=", 0);		// Update sd status
+		unmountedFlag = 1;
 		return;
 	}
 	else DBPRINT_LN("DONE.");
@@ -34,9 +35,9 @@ void SD_Card_INIT() {
 		dataFile.close();
 		nextion_update("sd_card_sett.sdStatus.txt=", "Working");
 		nextion_update("data.sd_status.val=", 1);		// Update sd status
+		unmountedFlag = 0;
 	}
-	// if the file isn't open, pop up an error:
-	else {
+	else { // if the file isn't open, pop up an error:
 		DBPRINT_LN("error opening datalog.csv");
 		SD_Card_Error("error opening datalog.csv");
 		nextion_update("sd_card_sett.sdStatus.txt=", "Could not open CSV file");
@@ -50,18 +51,20 @@ void SD_Card_INIT() {
 	if(errorList){
 		if(!exists){errorList.println(errorHeaders);}
 		errorList.close();
+		unmountedFlag = 0;
 	}
-	else{
+	else {
 		DBPRINT_LN("error opening errorlog.csv");
 		SD_Card_Error("error opening errorLog.csv");
 		nextion_update("sd_card_sett.sdStatus.txt=", "Could not open errorLog CSV file");
 		nextion_update("data.sd_status.val=", 0);			// Update sd status
 	}
 
-	unmountedFlag = 0;
+	// unmountedFlag = 0;
 }
 
 void SD_log(String date, String time){
+	verboseDbln("SD: UnmountedFlag = " + (String)unmountedFlag);
 	// Don't try to open and write to the file if card was unmounted
 	if(unmountedFlag==0){	
 		// Used Examples->datalogger.ino as reference
@@ -96,9 +99,8 @@ void SD_log(String date, String time){
 			dataFile.println(dataString);
 			dataFile.close();
 			// sd_errorFlag = 0;		// Reset error flag
-
+			clearError(ERR_SD);
 		}
-
 		// if the file isn't open, pop up an error:
 		else {
 			createError(ERR_SD, "Could not write to csv file");
