@@ -24,6 +24,7 @@ bool voltageCheck(){
 		else { // Time has lapsed
 			count = 0;
 			lowVoltageFLag = false;
+
 			clearError(ERR_VOLTAGE);
 
 			if (mode == HEATING) {			// If heating mode is active goto spring_heat page
@@ -40,11 +41,11 @@ bool voltageCheck(){
 		if (voltage.value < e_voltageThr) {
 			// Wait and check again 
 			delay(1000);
-			readSensors();
+			voltage.read();
 
 			if(voltage.value < e_voltageThr) {
 				lowVoltageFLag = true;
-				createError(ERR_VOLTAGE,"Low voltage (" + (String)voltage.value + "V).");
+				createError(ERR_VOLTAGE,"(" + (String)voltage.value + "V)");
 				
 				motor1.setSpeed(0);
 				motor2.setSpeed(0);
