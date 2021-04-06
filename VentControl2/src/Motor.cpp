@@ -15,6 +15,11 @@ int Motor::getMax()		{ return max; }
 
 void Motor::setSpeed(int s)
 {
+	if(isRunning && s == getSpeed()) {
+		if (current.getValue() > noCurrentThr) clearError(ERR_MOTOR);
+		else createError(ERR_MOTOR);
+		return;
+	}
 	// Update motor start time
 	if(s > 0 && !isRunning) { startMillis = millis(); }
 	// Update max
@@ -32,10 +37,11 @@ void Motor::setSpeed(int s)
 			analogWrite(output_pin, PWM);
 			delay(dly);                  // optional delay
 		}
-		current.read();
-
 		// Check that motor starts
-		if(current.getValue() > noCurrentThr) createError(ERR_MOTOR);
+		// delay(500);
+		current.read();
+		if(current.getValue() < noCurrentThr) createError(ERR_MOTOR);
+		else clearError(ERR_MOTOR);
 
 		return;   
 	} // end of 5
@@ -61,7 +67,9 @@ void Motor::setSpeed(int s)
 		}
 
 		// Check that motor starts
-		if(current.getValue() > noCurrentThr) createError(ERR_MOTOR);
+		current.read();
+		if(current.getValue() < noCurrentThr) createError(ERR_MOTOR);
+		else clearError(ERR_MOTOR);
 		return;
 	} // end of 4
 
@@ -85,7 +93,9 @@ void Motor::setSpeed(int s)
 			}
 		}
 		// Check that motor starts
-		if(current.getValue() > noCurrentThr) createError(ERR_MOTOR);
+		current.read();
+		if(current.getValue() < noCurrentThr) createError(ERR_MOTOR);
+		else clearError(ERR_MOTOR);
 		return;  
 	} // end of 3
 
@@ -109,7 +119,9 @@ void Motor::setSpeed(int s)
 			}
 		}
 		// Check that motor starts
-		if(current.getValue() > noCurrentThr) createError(ERR_MOTOR);		
+		current.read();
+		if(current.getValue() < noCurrentThr) createError(ERR_MOTOR);
+		else clearError(ERR_MOTOR);		
 		return;   
 	} // end of 2
 
@@ -133,7 +145,9 @@ void Motor::setSpeed(int s)
 			}
 		}
 		// Check that motor starts
-		if(current.getValue() > noCurrentThr) createError(ERR_MOTOR);		
+		current.read();
+		if(current.getValue() < noCurrentThr) createError(ERR_MOTOR);
+		else clearError(ERR_MOTOR);		
 		return;
 	} // end of 1
 
