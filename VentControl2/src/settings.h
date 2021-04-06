@@ -7,16 +7,20 @@
 #define PRINT_ERRORS
 // #define NEXTION
 // #define THINGSPEAK 
-// #define EEPROM_STORE 
+#define EEPROM_STORE 
 //#define TELEMETRY 
-
+// #define OFFLINE_TEST
 
 //************************    PINS    *********************************
 // USE TX2 for Nextion display communication
+/**
+ * RESERVED PINS:
+ * 52 - SPI (When using SD Card, must be left as an output if other SS (ChipSelect) pin us used)
+ */
 
 #define MOTOR1 12            // motor1 pin HEATED AIR
 #define MOTOR2 13			 // motor2 pin DIRECT AIR
-#define outside_temp_pin 52  // DS18B20 digital temperature sensor
+#define DS18B20_BUS 22       // DS18B20 digital temperature sensor
 /**
  * Use a 10k resistor between signal and 5V
 */
@@ -30,8 +34,8 @@
 #define LightSensorPin A9   // Light sensor pin
 
 // Select which SD card reader is used:
-#define CYTRON_SD
-//#define EXTERNAL_SD
+// #define CYTRON_SD
+#define EXTERNAL_SD
 
 #ifdef EXTERNAL_SD
     #define chipSelect 53		// pin for SD card chip select (see SD_card.h)
