@@ -57,7 +57,11 @@ class AnalogSensor: public Sensor {
 class DigitalTemp: public Sensor {
     
     public:
+        /**
+         * @param rPin Sensor bus pin
+         */
         DigitalTemp(int rPin);
+        
         /**
         * @param rPin Sensor digital pin
         * @param rIndex Sensor index
