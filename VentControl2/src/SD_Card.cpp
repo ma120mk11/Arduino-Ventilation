@@ -1,7 +1,7 @@
 #include "SD_Card.h"
 
-bool sd_errorFlag = 0;
-bool unmountedFlag = 0;
+// bool sd_errorFlag = 0;
+bool isUnmounted = true;
 
 
 // Headers to the CSV files:
@@ -19,7 +19,7 @@ void SD_Card_INIT() {
 		SD_Card_Error("SD card failed, or not present");
 		nextion_update("sd_card_sett.sdStatus.txt=", "Could not find SD card");
 		nextion_update("data.sd_status.val=", 0);		// Update sd status
-		unmountedFlag = 1;
+		isUnmounted = 1;
 		return;
 	}
 	else DBPRINT_LN("DONE.");
@@ -31,11 +31,11 @@ void SD_Card_INIT() {
 
 	// if the file is available, write to it:
 	if (dataFile) {
-		if(!exists){dataFile.println(headers);}			// Create headers only if the file was just created
-		dataFile.close();
+		if(!exists){ dataFile.println(headers); }			// Create headers only if the file was just created
+		
 		nextion_update("sd_card_sett.sdStatus.txt=", "Working");
 		nextion_update("data.sd_status.val=", 1);		// Update sd status
-		unmountedFlag = 0;
+		isUnmounted = 0;
 	}
 	else { // if the file isn't open, pop up an error:
 		DBPRINT_LN("error opening datalog.csv");
@@ -44,14 +44,16 @@ void SD_Card_INIT() {
 		nextion_update("data.sd_status.val=", 0);		// Update sd status
 	}
 
+	dataFile.close();
+
 	// ERROR LIST
 	exists = SD.exists("errorlog.csv");						// Check if file exists
 	File errorList = SD.open("errorlog.csv", FILE_WRITE);	// Open file
 	// if the file is available, write to it:
-	if(errorList){
-		if(!exists){errorList.println(errorHeaders);}
-		errorList.close();
-		unmountedFlag = 0;
+	if (errorList) {
+		if (!exists) { errorList.println(errorHeaders); }
+		
+		isUnmounted = 0;
 	}
 	else {
 		DBPRINT_LN("error opening errorlog.csv");
@@ -59,15 +61,15 @@ void SD_Card_INIT() {
 		nextion_update("sd_card_sett.sdStatus.txt=", "Could not open errorLog CSV file");
 		nextion_update("data.sd_status.val=", 0);			// Update sd status
 	}
-
-	// unmountedFlag = 0;
+	errorList.close();
 }
 
-void SD_log(String date, String time){
-	if (unmountedFlag) verboseDbln("SD: Unmounted");
+
+void SD_log(String date = "", String time = "") {
+	if (isUnmounted) verboseDbln("SD: Unmounted");
 	
 	// Don't try to open and write to the file if card was unmounted
-	if(unmountedFlag==0){	
+	if(isUnmounted==0){	
 		// Used Examples->datalogger.ino as reference
 		verboseDb("SD: Logging...");
 
@@ -99,8 +101,6 @@ void SD_log(String date, String time){
 		// if the file is available, write to it:
 		if (dataFile) {
 			dataFile.println(dataString);
-			dataFile.close();
-			
 			verboseDbln("DONE");
 			clearError(ERR_SD);
 		}
@@ -108,32 +108,22 @@ void SD_log(String date, String time){
 		else {
 			verboseDbln("ERROR");
 			createError(ERR_SD, "Could not write to csv file");
-			// if(sd_errorFlag == 0){
-			// 	DBPRINT_LN("error opening datalog.csv");
-			// 	SD_Card_Error("Could not write to csv file");
-			// 	nextion_update("sd_card_sett.sdStatus.txt=", "Could not write to csv file");
-			// 	nextion_update("data.sd_status.val=", 0);		// Update sd status
-			// 	// Set to 1 so we dont get an error every cycle if no card is present
-			// 	sd_errorFlag = 1;			
-			// }
-		} 
+		}
+		dataFile.close();
 	}
 }
 
-
-void SD_errorlog(int ErrorType, String msg, int count, String date = "", String time = ""){
+void SD_errorlog(int ErrorType, String msg, int count, String date = "", String time = "") {
 	// Don't try to open and write to the file if card was unmounted
-	if(unmountedFlag==0){	
+	if(isUnmounted==0) {	
 		
 		String dataString = "";
 		
-		dataString += date;
-		dataString += ",";
-		dataString += time;
-		dataString += ",";
-		dataString += ErrorType;
-		dataString += msg;
-		dataString += count;
+		dataString += date 		+ ",";
+		dataString += time 		+ ",";
+		dataString += (String)ErrorType + ",";
+		dataString += (String)msg 		+ ",";
+		dataString += (String)count;
 		
 		// open the file. note that only one file can be open at a time,
 		// so you have to close this one before opening another.
@@ -142,22 +132,21 @@ void SD_errorlog(int ErrorType, String msg, int count, String date = "", String 
 		// if the file is available, write to it:
 		if (dataFile) {
 			dataFile.println(dataString);
-			dataFile.close();
 			clearError(ERR_SD);
 		}
-
 		// if the file isn't open, pop up an error:
 		else {
 			createError(ERR_SD, "Could not write to csv file");
 		} 
+		dataFile.close();
 	}
 }
 
 
 void SD_unmount() {
 	SD.end();
-	unmountedFlag = 1;		// Notify that the card was unmounted
+	isUnmounted = true;		// Notify that the card was unmounted
 	nextion_update("sd_card_sett.sdStatus.txt=", "Unmounted");
-	DBPRINT_LN("Unmounted SD card");
 	nextion_update("data.sd_status.val=", 0);		// Update sd status
+	DBPRINT_LN("Unmounted SD card");
 }
