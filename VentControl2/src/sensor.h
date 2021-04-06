@@ -39,8 +39,8 @@ class Sensor {
        ~Sensor();
         void newValue(float);
     protected:
-        bool checkValue(float);        
-
+        bool checkValue(float, String);        
+        bool isInRange(float,float,float);
     private:
         int arrayLenght = 12;
         float values[12];    

@@ -61,9 +61,20 @@ float Sensor::getSlope() {
 	return (float)slope;
 }
 
-bool Sensor::checkValue(float valToCheck) {
-	if(abs(values[1] - valToCheck) > 10) return false;
-	else return true;
+bool Sensor::isInRange(float value, float a, float b) {
+	if (value >= a && value <= b) return true;
+	else return false;
+}
+
+
+bool Sensor::checkValue(float valToCheck, String type) {
+	bool inRange;
+	if (type == "voltage") { inRange = isInRange(valToCheck, -1, 20); }
+	if (type == "current") { inRange = isInRange(valToCheck, -1, 20); }
+	if (type == "temp") { inRange = isInRange(valToCheck, -50, 100); }
+
+	if(abs(values[1] - valToCheck) < 15 && inRange) return true;
+	else return false;
 }
 
 Sensor::~Sensor(){}
@@ -105,7 +116,7 @@ bool DigitalTemp::read() {
 	sensors.requestTemperaturesByIndex(index);
 	float temp = sensors.getTempCByIndex(index);
 	newValue(temp);
-	return checkValue(temp);
+	return checkValue(temp, "temp");
 }
 
 
@@ -127,7 +138,7 @@ bool AnalogTemp::read() {
 	// Round to 1 decimal. round() rounds decimal number to whole number. 
 	temp = round(temp * 10.0) / 10.0;
 	newValue(temp);
-	return checkValue(temp);
+	return checkValue(temp, "temp");
 }
 
 
@@ -140,7 +151,7 @@ bool VoltageSensor::read() {
 	float temp = (adc * pinReference / 1024.0) * 5.0;
 	temp = round(temp * 10.0) / 10.0;
 	newValue(temp);
-	return checkValue(temp);
+	return checkValue(temp, "voltage");
 }
 
 CurrentSensor::CurrentSensor(int rPin) { pin = rPin; }
@@ -152,5 +163,5 @@ bool CurrentSensor::read() {
 	temp = temp * mVperAmp;
 	temp = round(temp * 10.0) / 10.0;
 	newValue(temp);
-	return checkValue(temp);
+	return checkValue(temp, "current");
 }
