@@ -22,8 +22,6 @@ void Sensor::newValue(float val) {
 	// Update min and max value
 	if (val > max) max = val;
 	if (val < min) min = val;
-
-
 }
 
 float Sensor::getSlope() {
@@ -96,8 +94,6 @@ DigitalTemp::DigitalTemp(int rPin) {
 }
 
 void DigitalTemp::tempInit(){
-	// OneWire oneWirePin(52);
-	// DallasTemperature sensors(&oneWirePin);
 	extern DallasTemperature sensors;
 	sensors.begin();
 }
@@ -105,10 +101,9 @@ void DigitalTemp::tempInit(){
 void DigitalTemp::setIndex(int rIndex) { index = rIndex; }
 
 bool DigitalTemp::read() {
-	float temp = 0;
 	extern DallasTemperature sensors;
-	sensors.requestTemperaturesByIndex(0);
-	temp = sensors.getTempCByIndex(0);
+	sensors.requestTemperaturesByIndex(index);
+	float temp = sensors.getTempCByIndex(index);
 	newValue(temp);
 	return checkValue(temp);
 }
