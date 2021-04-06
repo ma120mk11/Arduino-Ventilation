@@ -1,7 +1,7 @@
 #include "ErrorHandling.h"
 
 struct Error {
-    bool flag = 0;              // Indicates that this error is active
+    bool active = 0;              // Indicates that this error is active
     String errorText = "";      
     String msg = "";            
     int count = 0;
@@ -13,27 +13,26 @@ String getErrors() {
     int count = 0;
     String text = "--Error log--\n";
     for(int i = 0; i < 30; i++) {
-        if (setError[i].flag) {
+        if (setError[i].active) {
             count++;
-            text += " -> (" + (String)setError[i].count + ") " + setError[i].errorText + ": " + setError[i].msg + " \n";
+            text += " -> (" + (String)setError[i].count + ") " + "Type: " + (String)i  + " " + setError[i].errorText + ": " + setError[i].msg + " \n";
         }
     }
     if (count == 0) return "0 Errors.";
     else {
-        return count + " active errors.\n" + text;
+        return (String)count + " active errors.\n" + text;
     }
 }
-
 
 
 void createError(int ErrorType, String msg = "")
 {
     setError[ErrorType].count++;
     // Don't generate an error if that error is still active
-    if (setError[ErrorType].flag) return;
+    if (setError[ErrorType].active) return;
 
     DateTime now = rtc.now();
-    String date = String(now.day()) + "." + String(now.month()) + "." + String(now.year());
+    String date = String(now.day())  + "." + String(now.month())  + "." + String(now.year());
 	String time = String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second());
     String errorText = "";
     
@@ -54,6 +53,8 @@ void createError(int ErrorType, String msg = "")
         break;
     case ERR_SD:
         errorText = "SD";
+        nextion_update("sd_card_sett.sdStatus.txt=", "Error");
+	    nextion_update("data.sd_status.val=", 0);		        // Update sd status
         break;
     case ERR_RTC:
         errorText = "RTC";
@@ -114,24 +115,22 @@ void createError(int ErrorType, String msg = "")
 
     setError[ErrorType].errorText = errorText;
     setError[ErrorType].msg = msg;
-    setError[ErrorType].flag = true;
-    
+    setError[ErrorType].active = true;
 
     String message = "Error: " + (String)ErrorType + " " + errorText + " " + msg;
     errorPrint(message);
 
-    // Avoid loop loggong sdcard error to sdcard
+    // Avoid loop logging sdcard error to sdcard
     if(ErrorType != ERR_SD){
         SD_errorlog(ErrorType, msg, setError[ErrorType].count, date, time);
     }
-    
 }
 
 
 void clearError(int ErrorType){
-    if (!setError[ErrorType].flag) {
-        verboseDbln("Reset error " + ErrorType);
-        setError[ErrorType].flag = false;
+    if (setError[ErrorType].active) {
+        verboseDbln("Resetting error " + (String)ErrorType);
+        setError[ErrorType].active = false;
         setError[ErrorType].count = 0;
     }
 }
