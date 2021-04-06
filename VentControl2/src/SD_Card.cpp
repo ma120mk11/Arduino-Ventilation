@@ -64,11 +64,13 @@ void SD_Card_INIT() {
 }
 
 void SD_log(String date, String time){
-	verboseDbln("SD: UnmountedFlag = " + (String)unmountedFlag);
+	if (unmountedFlag) verboseDbln("SD: Unmounted");
+	
 	// Don't try to open and write to the file if card was unmounted
 	if(unmountedFlag==0){	
 		// Used Examples->datalogger.ino as reference
-		
+		verboseDb("SD: Logging...");
+
 		String dataString = "";
 		
 		dataString += date;
@@ -98,11 +100,13 @@ void SD_log(String date, String time){
 		if (dataFile) {
 			dataFile.println(dataString);
 			dataFile.close();
-			// sd_errorFlag = 0;		// Reset error flag
+			
+			verboseDbln("DONE");
 			clearError(ERR_SD);
 		}
 		// if the file isn't open, pop up an error:
 		else {
+			verboseDbln("ERROR");
 			createError(ERR_SD, "Could not write to csv file");
 			// if(sd_errorFlag == 0){
 			// 	DBPRINT_LN("error opening datalog.csv");
