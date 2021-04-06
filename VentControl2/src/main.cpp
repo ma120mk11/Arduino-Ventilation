@@ -30,10 +30,8 @@ const char *ssid = "HUAWEIP20Pro";
 const char *pass = "3665d14cd73b";
 
 ESP8266Client client;					// WIFI client
-
 DS1302 rtc(RTC_RST, RTC_SCL, RTC_IO);	// Initialize rtc object
-
-OneWire oneWirePin(outside_temp_pin);
+OneWire oneWirePin(DS18B20_BUS);
 DallasTemperature sensors(&oneWirePin);
 
 //***********************  SETTINGS  ***************************
@@ -44,30 +42,21 @@ int mode = 1;						// System mode
 int tempUpper = 30;					// At which temperature to start motor
 int tempLower = 25;					// At which temp to stop motor
 
+//********************** ERROR SETTINGS **************************
+float e_voltageThr = 10.7;    		// If voltage goes under this value, send error message
+
+// **********************  VARIABLES  ****************************
+float tempDelta;					// How much the temperature is increased when flowing through panel
+
 struct eepromVariables {
 	int tempUpper;
 	int tempLower;
 	int mode;
 	float e_voltageThr;
+	float mtr1OnTime;		// Total ontime for motor 1
+	float mtr2OnTime;		// Total ontime for motor 2
 };
 			
-//********************** ERROR SETTINGS **************************
-float e_voltageThr = 10.7;    	// If voltage goes under this value, send error message
-
-// **********************  VARIABLES  ****************************
-//float derivate;					// The derivate of panel temperature
-float tempDelta;				// How much the temperature is increased when flowing through panel
-
-bool errorPending        = 0;
-
-
-int nextionPage;				// the page that is currently active
-int nextionMode;				// the active mode
-float temperature; // for debug
-
-
-
-
 
 void RtcInit() {
 	DBPRINT("Initializing RTC...");
@@ -80,13 +69,15 @@ void RtcInit() {
 		String time = String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second());
 		if(date == "165.165.2165"){
 			DBPRINT_LN("ERROR");
+			createError(ERR_RTC, "Could not initialize RTC");
 		}
 		else verboseDbln("adjusted to " + date + "  " + time);
 	} else {
 		DateTime now = rtc.now();
 		String date = String(now.day()) + "." + String(now.month()) + "." + String(now.year());
 		String time = String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second());
-		DBPRINT_LN("DONE - " + date + time);
+		DBPRINT_LN("DONE - " + date + " " + time);
+		clearError(ERR_RTC);
 	}
 }
 
@@ -121,7 +112,41 @@ void storeEEPROM() {
 	#endif
 }
 
-void init_sensors(){
+void readEEPROM() {
+	#ifdef EEPROM_STORE
+		DBPRINT("Reading EEPROM...");
+		eepromVariables eeRead;
+		int eeAddress = 0;
+		EEPROM.get(eeAddress, eeRead);
+		delay(500);
+
+		// Check that read values is in a sensible range
+		if (eeRead.tempLower > 0 && eeRead.tempLower < 80 && 
+			eeRead.tempUpper > 0 && eeRead.tempUpper < 80 && 
+			eeRead.e_voltageThr > 8 && eeRead.e_voltageThr < 20) 
+		{
+			e_voltageThr = eeRead.e_voltageThr;
+			tempUpper = eeRead.tempUpper;
+			tempLower = eeRead.tempLower;
+			mode = eeRead.mode;
+			DBPRINT_LN("DONE");
+			verboseDbln("***");
+			verboseDbln("* TempUpper:       " + (String)tempUpper);
+			verboseDbln("* TempLower:       " + (String)tempLower);
+			verboseDbln("* Low voltage thr: " + (String)e_voltageThr);
+			verboseDbln("* Mode:            " + (String)mode);
+			verboseDbln("***");
+		}
+		else { DBPRINT_LN("ERROR - using deafult values."); }
+
+	#endif
+}
+
+void init_sensors() {
+	DBPRINT("Initializing sensors...");
+	sensors.begin();
+	DigitalTemp::tempInit();
+	DBPRINT("found " + (String)sensors.getDeviceCount() + " digital sensors...");
 	t_Outside.read();
 	t_Panel.read();
 	t_HeatedAir.read();
@@ -131,18 +156,108 @@ void init_sensors(){
 
 	tempDelta = t_HeatedAir.value - t_Outside.value;
 	t_Delta.newValue(tempDelta);
+	DBPRINT_LN("DONE");
 }
 
 void readSensors() {
+	verboseDb("Reading sensors...");
+	unsigned long start = millis();
+	
 	if(!t_Outside.read()) 	createError(ERR_TEMP_OUTSIDE);
 	if(!t_Panel.read()) 	createError(ERR_TEMP_PANEL);
 	if(!t_HeatedAir.read())	createError(ERR_TEMP_AIR);	
 	if(!t_Inside.read())	createError(ERR_TEMP_INSIDE);
 	if(!current.read())		createError(ERR_CURRENT);
-	if(!voltage.read())		createError(ERR_VOLTAGE);
+	if(!voltage.read())		createError(ERR_VOLTAGE_SENSOR);
 
 	tempDelta = t_HeatedAir.value - t_Outside.value;
 	t_Delta.newValue(tempDelta);
+
+	verboseDbln("DONE " + (String)(millis()-start) + "ms");
+}
+
+void telemetryLog() {
+	#ifdef TELEMETRY
+		// Message is formatted for use with Telemetry viewer. Use a layout2 in Telemetry folder.
+		// TODO: add light sensor
+		
+		char outside_text[30];
+		char panel_text[30];
+		char air_text[30];
+		char room_text[30];
+		char filtered_text[30];
+		char voltage_text[30];
+		char current_text[30];
+		char tdelta_text[30];
+		char m1speed_text[30];
+
+		dtostrf(t_Outside.getValue(), 10, 10, outside_text);
+		dtostrf(t_Panel.getValue(), 10, 10, panel_text);
+		dtostrf(t_HeatedAir.getValue(), 10, 10, air_text);
+		dtostrf(t_Inside.getValue(), 10, 10, room_text);
+		dtostrf(0, 10, 10, filtered_text);
+		dtostrf(voltage.getValue(), 10, 10, voltage_text);
+		dtostrf(current.getValue(), 10, 10, current_text);
+		dtostrf(tempDelta, 10, 10, tdelta_text);
+		dtostrf(motor1.getSpeed(), 10, 10, m1speed_text);
+
+		char text[280];
+		snprintf(text, 280, "%s,%s,%s,%s,%s,%s,%s,%s,%s", outside_text, panel_text, air_text, room_text, voltage_text, current_text,filtered_text,tdelta_text,m1speed_text);
+		Serial.println(text);
+	#endif
+}
+
+void serialMonLog() {
+	#ifdef VERBOSE_DB
+	String text = "****** ";
+	verboseDbln(text);
+	text = "* Outside: " + (String)t_Outside.getValue() 	+ "C" + '\t' + t_Outside.getSlope() + " C/min";
+	verboseDbln(text);
+	text = "* Panel:   " + (String)t_Panel.getValue() 		+ "C" + '\t' + t_Panel.getSlope() + " C/min";
+	verboseDbln(text);
+	text = "* Air:     " + (String)t_HeatedAir.getValue()  	+ "C"+ '\t' + t_HeatedAir.getSlope() + " C/min";
+	verboseDbln(text);
+	text = "* t_Delta: " + (String)t_Delta.getValue() 		+ "C"+ '\t' + t_Delta.getSlope() + " C/min";
+	verboseDbln(text);
+	text = "* Inside:  " + (String)t_Inside.getValue()  	+ "C"+ '\t' + t_Inside.getSlope() + " C/min";
+	verboseDbln(text);
+	text = "* Voltage: " + (String)voltage.getValue()  		+ "V"+ '\t' + voltage.getSlope() + " V/min";
+	verboseDbln(text);
+	text = "* Current: " + (String)current.getValue()  		+ "A"+ '\t' + current.getSlope() + " A/min";
+	verboseDbln(text);
+	text = "****** ";
+	verboseDbln(text);
+	#endif
+}
+
+void thingspeakLog() {
+	#ifdef THINGSPEAK
+		unsigned long start = millis();
+		verboseDb("Sending to Thingspeak...");
+		ThingSpeak.setField(1,t_Outside.getValue());
+		ThingSpeak.setField(2,t_Panel.getValue());
+		ThingSpeak.setField(3,t_HeatedAir.getValue());
+		ThingSpeak.setField(4,t_Inside.getValue());
+		ThingSpeak.setField(5,voltage.getValue());
+		ThingSpeak.setField(6,current.getValue());
+		ThingSpeak.setField(7,motor1.getSpeed());
+		ThingSpeak.setStatus(getErrors());
+		// ThingSpeak.setField(8,t_Outside.getValue());	// TODO
+		int status = ThingSpeak.writeFields(CHANNEL_ID,CHANNEL_API_KEY);
+
+		// Print error to nextion and serial
+		if(status != 200) {
+			verboseDb("ERROR - ");
+			createError(ERR_THINKSPEAK, (String)status);
+		}
+		else { 
+			verboseDbln("DONE");
+			clearError(ERR_THINKSPEAK);
+		}
+
+		verboseDbln("Thingspeak upload took " + (String)((millis()-start)/1000) + "seconds");
+
+	#endif
 }
 
 #pragma region nextion
@@ -434,30 +549,9 @@ void setup() {
 	delay(400);
 	DBPRINT_LN("Starting Setup...");
 	SD_Card_INIT();
-	DigitalTemp::tempInit();
+	readEEPROM();
 
-	#ifdef EEPROM_STORE
-		DBPRINT("Reading EEPROM...");
-		eepromVariables eeRead;
-		int eeAddress = 0;
-		EEPROM.get(eeAddress, eeRead);
-		delay(500);
-		verboseDbln("Read eeprom");
 
-		// Check for errors
-		if (eeRead.tempLower > 0 && eeRead.tempLower < 80 && 
-			eeRead.tempUpper > 0 && eeRead.tempUpper < 80 && 
-			eeRead.e_voltageThr > 8 && eeRead.e_voltageThr < 20) {
-
-				e_voltageThr = eeRead.e_voltageThr;
-				tempUpper = eeRead.tempUpper;
-				tempLower = eeRead.tempLower;
-				mode = eeRead.mode;
-				DBPRINT_LN("DONE");
-		}
-		else { DBPRINT_LN("ERROR - using deafult values."); }
-
-	#endif
 	#ifdef NEXTION
 		DBPRINT("Initializing nextion display...");
 		bool isInitialized = nexInit();					// Initialize nextion display
@@ -527,11 +621,11 @@ void loop() {
 	* - Periodically run the motor for a specified time automatically. 
 	* - What happens if RTC card fails?
 	* - What happens if SD card fails?
+	* - Add total Motor time (EEPROM)
 	*/
-	DateTime now = rtc.now();
 
+	DateTime now = rtc.now();
 	static unsigned long loop_timer_1s;
-	static unsigned long loop_timer_3s;
 	static unsigned long loop_timer_5s;
 	static unsigned long loop_timer_1min;
 
@@ -553,52 +647,8 @@ void loop() {
 		readSensors();
 		heating();
 		sysValUpdate();
-
-			
-	
-		String text = (String)t_Outside.getValue() + '\t' + t_Outside.getSlope() + " C/min";
-		verboseDbln(text);
-		text = (String)t_Panel.getValue() + '\t' + t_Panel.getSlope() + " C/min";
-		verboseDbln(text);
-		text = (String)t_HeatedAir.getValue() + '\t' + t_HeatedAir.getSlope() + " C/min";
-		verboseDbln(text);
-		text = (String)t_Inside.getValue() + '\t' + t_Inside.getSlope() + " C/min";
-		verboseDbln(text);
-		text = (String)voltage.getValue() + '\t' + voltage.getSlope() + " V/min";
-		verboseDbln(text);
-		text = (String)current.getValue() + '\t' + current.getSlope() + " A/min";
-		verboseDbln(text);
-
-
-
-		#ifdef TELEMETRY
-			//  Message is formatted for use with Telemetry viewer. Use a layout2 in Telemetry folder.
-			// TODO: add light sensor
-			
-			char outside_text[30];
-			char panel_text[30];
-			char air_text[30];
-			char room_text[30];
-			char filtered_text[30];
-			char voltage_text[30];
-			char current_text[30];
-			char tdelta_text[30];
-			char m1speed_text[30];
-
-			dtostrf(t_Outside.getValue(), 10, 10, outside_text);
-			dtostrf(t_Panel.getValue(), 10, 10, panel_text);
-			dtostrf(t_HeatedAir.getValue(), 10, 10, air_text);
-			dtostrf(t_Inside.getValue(), 10, 10, room_text);
-			dtostrf(0, 10, 10, filtered_text);
-			dtostrf(voltage.getValue(), 10, 10, voltage_text);
-			dtostrf(current.getValue(), 10, 10, current_text);
-			dtostrf(tempDelta, 10, 10, tdelta_text);
-			dtostrf(motor1.getSpeed(), 10, 10, m1speed_text);
-
-			char text[280];
-			snprintf(text, 280, "%s,%s,%s,%s,%s,%s,%s,%s,%s", outside_text, panel_text, air_text, room_text, voltage_text, current_text,filtered_text,tdelta_text,m1speed_text);
-			Serial.println(text);
-		#endif
+		serialMonLog();	
+		telemetryLog();
 
 		loop_timer_5s = millis();		// Reset timer
 	}
@@ -610,32 +660,13 @@ void loop() {
 		String time = String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second());
 
 		SD_log(date, time);
-		
-		#ifdef THINGSPEAK
-			verboseDb("Sending to Thingspeak...");
-			ThingSpeak.setField(1,t_Outside.getValue());
-			ThingSpeak.setField(2,t_Panel.getValue());
-			ThingSpeak.setField(3,t_HeatedAir.getValue());
-			ThingSpeak.setField(4,t_Inside.getValue());
-			ThingSpeak.setField(5,voltage.getValue());
-			ThingSpeak.setField(6,current.getValue());
-			ThingSpeak.setField(7,motor1.getSpeed());
-			ThingSpeak.setField(8,t_Outside.getValue());	// TODO
-			int status = ThingSpeak.writeFields(CHANNEL_ID,CHANNEL_API_KEY);
-
-			// Print error to nextion and serial
-			if(status != 200) {
-				verboseDb("ERROR - ");
-				createError(ERR_THINKSPEAK, (String)status);
-			}
-			else { verboseDbln("DONE"); }
-
-		#endif
+		thingspeakLog();
+		errorPrint(getErrors());
 
 		loop_timer_1min = millis();
 	}
 
-	static int prevDay;
+	// static int prevDay;
 	// //Once every day
 	// if(now.day() != prevDay){
 	// 	#ifdef NEXTION
