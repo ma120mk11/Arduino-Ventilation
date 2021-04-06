@@ -7,7 +7,7 @@
  * It increases or decreases the motor speed gradually until it reaches the value.  
 */
 
-class Motor{
+class Motor {
     private:
 		int speed;
 		int PWM;
@@ -15,7 +15,7 @@ class Motor{
 		int output_pin = 9;
 		int max = 0;
         unsigned long startMillis;
-        float noCurrentThr = 2.0;   // 
+        float noCurrentThr = 1.0;   // 
 
         // PWM SETTINGS :
         static const int s1 = 70;				// motor PWM value at setting 1
@@ -29,8 +29,8 @@ class Motor{
         /**
          * @param speed Range 0 - 5
          */
-        void setSpeed(int speed);     // 
-        int getSpeed();         // Returns the current motor speed (int)
+        void setSpeed(int speed);       // 
+        int getSpeed();                 // Returns the current motor speed (int)
         void setPin(int pin);
         int getMax();
 
@@ -40,7 +40,6 @@ class Motor{
          */
         int getTimeOn();
         bool isRunning = 0;
-
 };
 
 #endif
