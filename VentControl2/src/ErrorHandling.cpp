@@ -1,31 +1,53 @@
 #include "ErrorHandling.h"
 
 struct Error {
-    bool flag = 0;
-    String msg = "";
+    bool flag = 0;              // Indicates that this error is active
+    String errorText = "";      
+    String msg = "";            
     int count = 0;
 };
 
 Error setError[30];
 
+String getErrors() {
+    int count = 0;
+    String text = "--Error log--\n";
+    for(int i = 0; i < 30; i++) {
+        if (setError[i].flag) {
+            count++;
+            text += " -> (" + (String)setError[i].count + ") " + setError[i].errorText + ": " + setError[i].msg + " \n";
+        }
+    }
+    if (count == 0) return "0 Errors.";
+    else {
+        return count + " active errors.\n" + text;
+    }
+}
+
+
+
 void createError(int ErrorType, String msg = "")
 {
+    setError[ErrorType].count++;
+    // Don't generate an error if that error is still active
+    if (setError[ErrorType].flag) return;
+
     DateTime now = rtc.now();
-    // String date = String(now.day()) + "." + String(now.month()) + "." + String(now.year());
-	// String time = String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second());
+    String date = String(now.day()) + "." + String(now.month()) + "." + String(now.year());
+	String time = String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second());
     String errorText = "";
     
     switch (ErrorType)
     {
     case ERR_VOLTAGE:
         nextion_goToPage("voltage_error");
-        errorText = "Voltage";
+        errorText = "Voltage too low";
         break;
     case ERR_CURRENT:
         errorText = "Current";
         break;
     case ERR_MOTOR:
-        errorText = "Motor";
+        errorText = "Motor didn't start";
         break;
     case ERR_WFIFI:
         errorText = "Wifi";
@@ -85,28 +107,31 @@ void createError(int ErrorType, String msg = "")
         nextion_update("wifi_error.message.txt", errorText);
         nextion_goToPage("wifi_error");
         break;
-  
     default:
         errorText = "Unknown error";
         break;
     }
 
+    setError[ErrorType].errorText = errorText;
+    setError[ErrorType].msg = msg;
     setError[ErrorType].flag = true;
-    setError[ErrorType].count++;
+    
 
     String message = "Error: " + (String)ErrorType + " " + errorText + " " + msg;
     errorPrint(message);
 
     // Avoid loop loggong sdcard error to sdcard
     if(ErrorType != ERR_SD){
-        SD_errorlog(ErrorType, msg, setError[ErrorType].count);
+        SD_errorlog(ErrorType, msg, setError[ErrorType].count, date, time);
     }
     
 }
 
 
 void clearError(int ErrorType){
-    verboseDbln("Reset error " + ErrorType);
-    setError[ErrorType].flag = false;
-    setError[ErrorType].count = 0;
+    if (!setError[ErrorType].flag) {
+        verboseDbln("Reset error " + ErrorType);
+        setError[ErrorType].flag = false;
+        setError[ErrorType].count = 0;
+    }
 }

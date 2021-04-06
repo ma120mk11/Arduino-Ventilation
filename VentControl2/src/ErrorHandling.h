@@ -35,5 +35,6 @@ void createError(int ErrorType, String msg = "");
  */
 void clearError(int ErrorType);
 
+String getErrors();
 
 #endif
