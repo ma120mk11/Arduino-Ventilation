@@ -13,11 +13,7 @@ extern Motor motor1;
 extern Motor motor2;
 extern float e_voltageThr;
 extern int mode;
-extern bool errorPending;
-extern void readSensors();
-extern NexTouch *nex_listen_list[];
-extern bool errorPending;
-static int voltageErrorCount    = 0;
+
 
 bool voltageCheck();
 void dismissVoltageError();
