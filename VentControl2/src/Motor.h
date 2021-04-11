@@ -15,7 +15,9 @@ class Motor {
 		int output_pin = 9;
 		int max = 0;
         unsigned long startMillis;
-        float noCurrentThr = 1.0;   // 
+        unsigned long timeOn;
+        float noCurrentThr = 1.0;   //
+
 
         // PWM SETTINGS :
         static const int s1 = 70;				// motor PWM value at setting 1
@@ -39,6 +41,7 @@ class Motor {
          * @return motor on time in minutes
          */
         int getTimeOn();
+        void resetTimeOn();
         bool isRunning = 0;
 };
 

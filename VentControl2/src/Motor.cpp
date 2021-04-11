@@ -22,6 +22,8 @@ void Motor::setSpeed(int s)
 	}
 	// Update motor start time
 	if(s > 0 && !isRunning) { startMillis = millis(); }
+	if(s == 0 && isRunning) { timeOn += (millis() - startMillis) / 60000;}
+	
 	// Update max
 	if(s > max) max = s;
 
@@ -168,7 +170,11 @@ void Motor::setSpeed(int s)
 }
 
 int Motor::getTimeOn() {
-	int timeOn = 0;
-	if (isRunning) timeOn = (millis() - startMillis) / 60000;
+	// If motor is running when the metod is called
+	if (isRunning) timeOn += (millis() - startMillis) / 60000;
 	return timeOn;
+}
+
+void Motor:: resetTimeOn(){ 
+	timeOn = 0;
 }
