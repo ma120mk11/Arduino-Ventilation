@@ -10,7 +10,7 @@
 #define ERR_VOLTAGE 1    // Low voltage
 #define ERR_CURRENT 2   
 #define ERR_MOTOR 3     // A motor didn't start (no current detected)
-
+#define ERR_VOLTAGE_SENSOR 4
 #define ERR_WFIFI 5     // Wifi 
 #define ERR_SD 6
 #define ERR_RTC 7
@@ -34,6 +34,9 @@ void createError(int ErrorType, String msg = "");
  * Resets the error flag and counter.
  */
 void clearError(int ErrorType);
+
+int getCreatedErrorCount();
+void resetCreatedErrorCount();
 
 String getErrors();
 

@@ -8,6 +8,14 @@ struct Error {
 };
 
 Error setError[30];
+int numOfCreatedErrors = 0;
+int getCreatedErrorCount(){
+    return numOfCreatedErrors;
+}
+
+void resetCreatedErrorCount(){
+    numOfCreatedErrors = 0;
+}
 
 String getErrors() {
     int count = 0;
@@ -41,6 +49,9 @@ void createError(int ErrorType, String msg = "")
     case ERR_VOLTAGE:
         nextion_goToPage("voltage_error");
         errorText = "Voltage too low";
+        break;
+    case ERR_VOLTAGE_SENSOR:
+        errorText = "Voltage sensor";
         break;
     case ERR_CURRENT:
         errorText = "Current";
@@ -112,6 +123,8 @@ void createError(int ErrorType, String msg = "")
         errorText = "Unknown error";
         break;
     }
+
+    numOfCreatedErrors++;
 
     setError[ErrorType].errorText = errorText;
     setError[ErrorType].msg = msg;
