@@ -18,10 +18,10 @@
 
 Motor motor1(MOTOR1);				// Heated air
 Motor motor2(MOTOR2);				// Cool air
-DigitalTemp	t_Outside(T_OUTSIDE);
+DigitalTemp	t_Outside(DS18B20_BUS, 1);
 AnalogTemp 	t_Panel(T_PANEL);
 AnalogTemp 	t_HeatedAir(T_AIR);
-AnalogTemp	t_Inside(T_LIVINGROOM);
+DigitalTemp	t_Inside(DS18B20_BUS, 0);
 CurrentSensor current(CURRENT);		
 VoltageSensor voltage(VOLTAGE);
 Sensor t_Delta;						
@@ -82,6 +82,7 @@ void RtcInit() {
 }
 
 void WifiInit() {
+	#ifdef THINGSPEAK
 	DBPRINT("Initializing Wifi module...");
 	if(!wifi.begin(10,11)){
 		DBPRINT_LN(F("cannot connect to WIFI module."));
@@ -95,6 +96,8 @@ void WifiInit() {
 		nextion_update("data.wifi_status.val=", 1);
 		nextion_update("wifi_sett.status.txt=", "Connected to: " + (String)ssid);
 	}
+	ThingSpeak.begin(client);
+	#endif
 }
 
 void storeEEPROM() {
@@ -163,12 +166,12 @@ void readSensors() {
 	verboseDb("Reading sensors...");
 	unsigned long start = millis();
 	
-	if(!t_Outside.read()) 	createError(ERR_TEMP_OUTSIDE);
-	if(!t_Panel.read()) 	createError(ERR_TEMP_PANEL);
-	if(!t_HeatedAir.read())	createError(ERR_TEMP_AIR);	
-	if(!t_Inside.read())	createError(ERR_TEMP_INSIDE);
-	if(!current.read())		createError(ERR_CURRENT);
-	if(!voltage.read())		createError(ERR_VOLTAGE_SENSOR);
+	if(!t_Outside.read()) 	createError(ERR_TEMP_OUTSIDE); 	else clearError(ERR_TEMP_OUTSIDE);
+	if(!t_Panel.read()) 	createError(ERR_TEMP_PANEL);	else clearError(ERR_TEMP_PANEL);
+	if(!t_HeatedAir.read())	createError(ERR_TEMP_AIR);		else clearError(ERR_TEMP_AIR);
+	if(!t_Inside.read())	createError(ERR_TEMP_INSIDE);	else clearError(ERR_TEMP_INSIDE);
+	if(!current.read())		createError(ERR_CURRENT);		else clearError(ERR_CURRENT);
+	if(!voltage.read())		createError(ERR_VOLTAGE_SENSOR);else clearError(ERR_VOLTAGE_SENSOR);
 
 	tempDelta = t_HeatedAir.value - t_Outside.value;
 	t_Delta.newValue(tempDelta);
@@ -260,7 +263,7 @@ void thingspeakLog() {
 	#endif
 }
 
-#pragma region nextion
+#ifdef NEXTION
 //#########################         NEXTION               #############################
 // Declare Nextion objects
 /* Types of objects:
@@ -539,7 +542,7 @@ void setTimePopCallback(void *ptr){
 	void sd_initPopCallback(void *ptr){
 		SD_Card_INIT();
 	}
-#pragma endregion nextion
+#endif
 
 
 //**********************************************   SETUP     ********************************************//
@@ -550,29 +553,21 @@ void setup() {
 	DBPRINT_LN("Starting Setup...");
 	SD_Card_INIT();
 	readEEPROM();
-
-
-	#ifdef NEXTION
-		DBPRINT("Initializing nextion display...");
-		bool isInitialized = nexInit();					// Initialize nextion display
-		nextion_goToPage("ardu_restart");				// Notify the display that arduino was restarted
-		nextion_update("settings_2.v_err.val=", (e_voltageThr*10));
-		if(isInitialized)DBPRINT_LN("DONE");
-		else DBPRINT_LN("ERROR");
-	#endif
 	RtcInit();
 	pinMode(MOTOR1, OUTPUT);           	// set motor as output
 	pinMode(MOTOR2, OUTPUT);           	// set motor as output
 	init_sensors();
+	WifiInit();
 	
+	#ifdef NEXTION
+	DBPRINT("Initializing nextion display...");
+	bool isInitialized = nexInit();					// Initialize nextion display
+	nextion_goToPage("ardu_restart");				// Notify the display that arduino was restarted
+	nextion_update("settings_2.v_err.val=", (e_voltageThr*10));
+	if(isInitialized)DBPRINT_LN("DONE");
+	else DBPRINT_LN("ERROR");
 
-	#ifdef THINGSPEAK
-		WifiInit();
-		ThingSpeak.begin(client);	
-	#endif
-	
 
-	#pragma region nextion_setup
 	springHeat.attachPop(springHeatPopCallback, &springHeat); 	// MENU
 	setTime.attachPop(setTimePopCallback, &setTime);  			// Page 3
 	bMS1.attachPop(bMS1PopCallback, &bMS1);       				// Page 4
@@ -604,11 +599,11 @@ void setup() {
 	v_errInc.attachPop(v_errIncPopCallback, &v_errInc);
 	sd_init.attachPop(sd_initPopCallback, &sd_init);			// Page 21
 	sd_unmount.attachPop(sd_unmountPopCallback, &sd_unmount);
-	#pragma endregion nextion_setup
-
+	
 	// Update nextion start values
 	NEXtempThrUpdate();
 	NEXsensor_maxUpdate();
+	#endif
 
 	DBPRINT_LN("Setup Done.");
 } // END OF SETUP
@@ -652,7 +647,6 @@ void loop() {
 
 		loop_timer_5s = millis();		// Reset timer
 	}
-
 	
 	// once every minute
 	if(millis() - loop_timer_1min > ONE_MIN){
@@ -666,18 +660,21 @@ void loop() {
 		loop_timer_1min = millis();
 	}
 
-	// static int prevDay;
-	// //Once every day
-	// if(now.day() != prevDay){
-	// 	#ifdef NEXTION
-	// 		// Update nextion clock:
-	// 		// TODO //nextion_update("rtc0.val=", now.year());
-	// 		nextion_update("rtc1=", now.month());
-	// 		nextion_update("rtc2=", now.day());
-	// 		nextion_update("rtc3=", now.hour());
-	// 		nextion_update("rtc4=", now.minute());
-	// 	#endif
-	// 	storeEEPROM();
-	// 	prevDay = now.day();			// Reset logic
-	// }
+	static int prevDay;
+	//Once every day
+	if(now.day() != prevDay){
+		#ifdef NEXTION
+			// Update nextion clock:
+			// TODO //nextion_update("rtc0.val=", now.year());
+			nextion_update("rtc1=", now.month());
+			nextion_update("rtc2=", now.day());
+			nextion_update("rtc3=", now.hour());
+			nextion_update("rtc4=", now.minute());
+		#endif
+		String date = String(now.day()) + "." + String(now.month()) + "." + String(now.year());
+		SD_DayReport(date, motor1.getTimeOn(), getCreatedErrorCount());
+		resetCreatedErrorCount();
+		storeEEPROM();
+		prevDay = now.day();			// Reset logic
+	}
 }
