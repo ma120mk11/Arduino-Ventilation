@@ -23,6 +23,7 @@ Arduino Nano	11		12		13		10
 void SD_Card_INIT();
 void SD_log(String date, String time);
 void SD_errorlog(int ErrorType, String msg, int count, String date = "", String time = "");
+void SD_DayReport(String date, int mtrOnTime, int errorcount);
 void SD_unmount();
 
 #endif

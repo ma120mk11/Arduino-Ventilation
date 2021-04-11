@@ -7,7 +7,7 @@ bool isUnmounted = true;
 // Headers to the CSV files:
 String headers = "date,time,outside,panel,heated-air,room,voltage,current,motorSpeed";		// datalog.csv
 String errorHeaders = "date,time,errorType,msg,errortypecount";
-String reportHeaders = "date,xxx,xxx,xxx";
+String reportHeaders = "date,ErrorsCreated,MotorOnTime";
 
 void SD_Card_INIT() {
 	DBPRINT("Initializing SD card...");
@@ -62,6 +62,24 @@ void SD_Card_INIT() {
 		nextion_update("data.sd_status.val=", 0);			// Update sd status
 	}
 	errorList.close();
+
+
+	// DAY REPORT
+	exists = SD.exists("dayreport.csv");					// Check if file exists
+	File dayReport = SD.open("dayreport.csv", FILE_WRITE);	// Open file
+	// if the file is available, write to it:
+	if (dayReport) {
+		if (!exists) { dayReport.println(reportHeaders); }
+		
+		isUnmounted = 0;
+	}
+	else {
+		DBPRINT_LN("error opening dayreport.csv");
+		SD_Card_Error("error opening dayreport.csv");
+		nextion_update("sd_card_sett.sdStatus.txt=", "Could not open dayreport CSV file");
+		nextion_update("data.sd_status.val=", 0);			// Update sd status
+	}
+	dayReport.close();
 }
 
 
@@ -141,6 +159,26 @@ void SD_errorlog(int ErrorType, String msg, int count, String date = "", String 
 		dataFile.close();
 	}
 }
+
+
+void SD_DayReport(String date, int mtrOnTime, int errorcount){
+	if (!isUnmounted){
+		String dataString = date 	+ ",";
+		dataString += errorcount	+ ",";
+		dataString += mtrOnTime;
+
+		File dataFile = SD.open("dayreport.csv", FILE_WRITE);
+		if (dataFile) {
+			dataFile.println(dataString);
+			clearError(ERR_SD);
+		}
+		else {
+			createError(ERR_SD, "Could not write to file");
+		}
+		dataFile.close();
+	}
+}
+
 
 
 void SD_unmount() {
