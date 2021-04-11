@@ -25,7 +25,7 @@
  * Use a 10k resistor between signal and 5V
 */
 
-#define T_OUTSIDE 52		// LM35 temp sensor0 pin	OUTSIDE TEMP
+// #define T_OUTSIDE 52		// LM35 temp sensor0 pin	OUTSIDE TEMP
 #define T_PANEL A1   	    // LM35 temp sensor1 pin  	PANEL TEMP
 #define T_AIR A2   	        // LM35 temp sensor2 pin	HOT AIR
 #define T_LIVINGROOM A3   	// LM35 temp sensor3 pin	LIVING ROOM
@@ -34,8 +34,8 @@
 #define LightSensorPin A9   // Light sensor pin
 
 // Select which SD card reader is used:
-// #define CYTRON_SD
-#define EXTERNAL_SD
+#define CYTRON_SD
+// #define EXTERNAL_SD
 
 #ifdef EXTERNAL_SD
     #define chipSelect 53		// pin for SD card chip select (see SD_card.h)

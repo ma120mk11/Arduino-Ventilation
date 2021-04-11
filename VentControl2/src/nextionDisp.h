@@ -14,7 +14,7 @@ extern Motor motor2;
 extern DigitalTemp	t_Outside;
 extern AnalogTemp 	t_Panel;
 extern AnalogTemp 	t_HeatedAir;
-extern AnalogTemp	t_Inside;
+extern DigitalTemp	t_Inside;
 extern CurrentSensor current;
 extern VoltageSensor voltage;
 
