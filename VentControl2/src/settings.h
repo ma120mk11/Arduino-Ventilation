@@ -2,11 +2,12 @@
 #define SETTINGS_H
 
 // Enable features
+#define RELEASE
 #define DEBUG
 #define VERBOSE_DB
 #define PRINT_ERRORS
 // #define NEXTION
-// #define THINGSPEAK 
+#define THINGSPEAK 
 #define EEPROM_STORE 
 //#define TELEMETRY 
 // #define OFFLINE_TEST
@@ -20,7 +21,7 @@
 
 #define MOTOR1 12            // motor1 pin HEATED AIR
 #define MOTOR2 13			 // motor2 pin DIRECT AIR
-#define DS18B20_BUS 22       // DS18B20 digital temperature sensor
+#define DS18B20_BUS 28       // DS18B20 digital temperature sensor
 /**
  * Use a 10k resistor between signal and 5V
 */
@@ -45,10 +46,12 @@
 #endif
 
 // pins for DS1302 RTC Module
-#define RTC_RST 8
-#define RTC_IO 7
-#define RTC_SCL 6
-
+// #define RTC_RST 8
+// #define RTC_IO 7
+// #define RTC_SCL 6
+#define RTC_RST 30
+#define RTC_IO 31
+#define RTC_SCL 32
 
 // ***************** SENSOR OFFSET **********************
 #define t0sensorOffset 0
@@ -81,7 +84,7 @@
 #define THREE_SEC 3000
 #define FIVE_SEC 5000
 #define ONE_MIN 60000
-
+#define ONE_DAY 86400000
 
 #ifdef PRINT_ERRORS
     #define errorPrint(a) Serial.println(a)
