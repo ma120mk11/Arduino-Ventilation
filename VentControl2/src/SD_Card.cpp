@@ -46,7 +46,7 @@ void SD_Card_INIT() {
 
 	dataFile.close();
 
-	// ERROR LIST
+	// ERROR LOG
 	exists = SD.exists("errorlog.csv");						// Check if file exists
 	File errorList = SD.open("errorlog.csv", FILE_WRITE);	// Open file
 	// if the file is available, write to it:
