@@ -26,8 +26,10 @@ CurrentSensor current(CURRENT);
 VoltageSensor voltage(VOLTAGE);
 Sensor t_Delta;						
 
-const char *ssid = "HUAWEIP20Pro";
-const char *pass = "3665d14cd73b";
+const char *ssid = "AndroidAP";
+const char *pass = "arduinomega";
+// const char *ssid = "HUAWEIP20Pro";
+// const char *pass = "3665d14cd73b";
 
 ESP8266Client client;					// WIFI client
 DS1302 rtc(RTC_RST, RTC_SCL, RTC_IO);	// Initialize rtc object
@@ -47,6 +49,7 @@ float e_voltageThr = 10.7;    		// If voltage goes under this value, send error 
 
 // **********************  VARIABLES  ****************************
 float tempDelta;					// How much the temperature is increased when flowing through panel
+String errorstr_last = "";
 
 struct eepromVariables {
 	int tempUpper;
@@ -61,7 +64,7 @@ struct eepromVariables {
 void RtcInit() {
 	DBPRINT("Initializing RTC...");
 	rtc.begin();
-	rtc.adjust(DateTime(__DATE__,__TIME__));
+	// rtc.adjust(DateTime(__DATE__,__TIME__));
 	if(!rtc.isrunning()) {
 		rtc.adjust(DateTime(__DATE__,__TIME__));
 		DateTime now = rtc.now();
@@ -244,8 +247,17 @@ void thingspeakLog() {
 		ThingSpeak.setField(5,voltage.getValue());
 		ThingSpeak.setField(6,current.getValue());
 		ThingSpeak.setField(7,motor1.getSpeed());
-		ThingSpeak.setStatus(getErrors());
-		// ThingSpeak.setField(8,t_Outside.getValue());	// TODO
+		ThingSpeak.setField(8,t_Delta.getSlope());
+
+		String errorstr = getErrorsOneline(false, true);
+
+		// Only update status on change
+		if (errorstr != errorstr_last) {
+			if (errorstr.length() < 255) ThingSpeak.setStatus(errorstr);
+			else ThingSpeak.setStatus("Status update failed, error string too long");
+			errorstr_last = errorstr;
+		}
+		
 		int status = ThingSpeak.writeFields(CHANNEL_ID,CHANNEL_API_KEY);
 
 		// Print error to nextion and serial
@@ -544,7 +556,6 @@ void setTimePopCallback(void *ptr){
 	}
 #endif
 
-
 //**********************************************   SETUP     ********************************************//
 void setup() {													
 	Serial.begin(9600);
@@ -618,11 +629,18 @@ void loop() {
 	* - What happens if SD card fails?
 	* - Add total Motor time (EEPROM)
 	*/
-
+	
 	DateTime now = rtc.now();
+	String date = String(now.day()) + "." + String(now.month()) + "." + String(now.year());
+	String time = String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second());
+	if (date == "165.165.2165") {
+		createError(ERR_RTC);
+	} else clearError(ERR_RTC);
+
 	static unsigned long loop_timer_1s;
 	static unsigned long loop_timer_5s;
 	static unsigned long loop_timer_1min;
+	static unsigned long loop_timer_1day;
 
 	// Every cycle:
 	#ifdef NEXTION
@@ -630,13 +648,6 @@ void loop() {
 	#endif
 
 
-	// Once every second:
-	if((millis() - loop_timer_1s) > ONE_SEC){
-		
-
-		loop_timer_1s = millis();		// Reset timer
-	}
-	
 	// Once every 5 seconds
 	if((millis() - loop_timer_5s) > FIVE_SEC){
 		readSensors();
@@ -650,9 +661,6 @@ void loop() {
 	
 	// once every minute
 	if(millis() - loop_timer_1min > ONE_MIN){
-		String date = String(now.day()) + "." + String(now.month()) + "." + String(now.year());
-		String time = String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second());
-
 		SD_log(date, time);
 		thingspeakLog();
 		errorPrint(getErrors());
@@ -662,7 +670,18 @@ void loop() {
 
 	static int prevDay;
 	//Once every day
-	if(now.day() != prevDay){
+	// If RTC clock is not working, use millis() instead
+	bool isNewDay = false;
+	if (isActiveErrorType(ERR_RTC)) {
+		if (millis() - loop_timer_1day > ONE_DAY) {
+			isNewDay = true;
+		}
+	}
+	else if (now.day() != prevDay) {
+		isNewDay = true;
+	}
+
+	if(isNewDay) {
 		#ifdef NEXTION
 			// Update nextion clock:
 			// TODO //nextion_update("rtc0.val=", now.year());
@@ -675,6 +694,9 @@ void loop() {
 		SD_DayReport(date, motor1.getTimeOn(), getCreatedErrorCount());
 		resetCreatedErrorCount();
 		storeEEPROM();
-		prevDay = now.day();			// Reset logic
+
+		// Reset logic
+		prevDay = now.day();			
+		loop_timer_1day = millis();
 	}
 }
