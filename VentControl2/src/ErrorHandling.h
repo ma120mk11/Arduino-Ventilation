@@ -35,9 +35,20 @@ void createError(int ErrorType, String msg = "");
  */
 void clearError(int ErrorType);
 
+/**
+ * Returns true if error is active
+ * @param type Errortype to check
+ * @return true/false
+ */
+bool isActiveErrorType(int type);
+
 int getCreatedErrorCount();
 void resetCreatedErrorCount();
-
-String getErrors();
-
+String getErrorTypeString(int type);
+String getErrors(bool verbose = true);
+/**
+ * @param verbose Include error message if available
+ * @param ignoreThingspeak Doesn't return an error for thingspeak
+ */
+String getErrorsOneline(bool verbose = true, bool ignoreThingspeak = false);
 #endif

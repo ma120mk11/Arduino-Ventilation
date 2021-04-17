@@ -8,7 +8,9 @@ struct Error {
 };
 
 Error setError[30];
+
 int numOfCreatedErrors = 0;
+
 int getCreatedErrorCount(){
     return numOfCreatedErrors;
 }
@@ -17,13 +19,14 @@ void resetCreatedErrorCount(){
     numOfCreatedErrors = 0;
 }
 
-String getErrors() {
+String getErrors(bool verbose = true) {
     int count = 0;
     String text = "--Error log--\n";
     for(int i = 0; i < 30; i++) {
         if (setError[i].active) {
             count++;
-            text += " -> (" + (String)setError[i].count + ") " + "Type: " + (String)i  + " " + setError[i].errorText + ": " + setError[i].msg + " \n";
+            if (verbose) text += " -> (" + (String)setError[i].count + ") " + "Type: " + (String)i  + " " + setError[i].errorText + ": " + setError[i].msg + " \n";
+            else text += " -> (" + (String)setError[i].count + ") " + "Type: " + (String)i  + " \n";
         }
     }
     if (count == 0) return "0 Errors.";
@@ -32,9 +35,77 @@ String getErrors() {
     }
 }
 
+String getErrorsOneline(bool verbose = true, bool ignoreThingspeak = false) {
+    int count = 0;
+    String text = "";
+    for(int i = 0; i < 30; i++) {
+        if (setError[i].active) {
+            // 
+            if (ignoreThingspeak && i == ERR_THINKSPEAK) continue;
 
-void createError(int ErrorType, String msg = "")
-{
+            count++;
+            // Print comma if more than one error
+            if (count > 1) text += ", ";
+            if (verbose) text += (String)i + " (" + getErrorTypeString(i) + ")" + " " + setError[i].errorText + ": " + setError[i].msg;
+            else text += (String)i + "(" + getErrorTypeString(i) + ")";
+        }
+    }
+    if (count == 0) return "0 Errors.";
+    else {
+        return (String)count + " active errors. " + text;
+    }
+}
+
+String getErrorTypeString(int type) {
+    String text = "";
+    switch (type){
+        case 1:
+            text = "voltage";
+            break;
+        case 2:
+            text = "current";
+            break;
+        case 3:
+            text = "motor";
+            break;
+        case 4:
+            text = "voltage sensor";
+            break;
+        case 5:
+            text = "wifi";
+            break;
+        case 6:
+            text = "SD";
+            break;
+        case 7:
+            text = "RTC";
+            break;
+        case 8:
+            text = "nextion";
+            break;
+        case 9:
+            text = "sensor outside";
+            break;
+        case 10:
+            text = "sensor panel";
+            break;
+        case 11:
+            text = "sensor heated air";
+            break;
+        case 12:
+            text = "sensor inside";
+            break;
+        case 13:
+            text = "thingspeak";
+            break;
+        default:
+            text = "unknown";
+            break;
+    }    
+    return text;
+}
+
+void createError(int ErrorType, String msg = "") {
     setError[ErrorType].count++;
     // Don't generate an error if that error is still active
     if (setError[ErrorType].active) return;
@@ -139,6 +210,9 @@ void createError(int ErrorType, String msg = "")
     }
 }
 
+bool isActiveErrorType(int type) {
+    return setError[type].active;
+}
 
 void clearError(int ErrorType){
     if (setError[ErrorType].active) {
