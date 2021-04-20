@@ -26,10 +26,13 @@ CurrentSensor current(CURRENT);
 VoltageSensor voltage(VOLTAGE);
 Sensor t_Delta;						
 
+#ifndef DEVELOPMENT
 const char *ssid = "AndroidAP";
 const char *pass = "arduinomega";
-// const char *ssid = "HUAWEIP20Pro";
-// const char *pass = "3665d14cd73b";
+#else
+const char *ssid = "HUAWEIP20Pro";
+const char *pass = "3665d14cd73b";
+#endif
 
 ESP8266Client client;					// WIFI client
 DS1302 rtc(RTC_RST, RTC_SCL, RTC_IO);	// Initialize rtc object
@@ -50,6 +53,7 @@ float e_voltageThr = 10.7;    		// If voltage goes under this value, send error 
 // **********************  VARIABLES  ****************************
 float tempDelta;					// How much the temperature is increased when flowing through panel
 String errorstr_last = "";
+static int prevMode = mode;
 
 struct eepromVariables {
 	int tempUpper;
@@ -248,14 +252,16 @@ void thingspeakLog() {
 		ThingSpeak.setField(6,current.getValue());
 		ThingSpeak.setField(7,motor1.getSpeed());
 		ThingSpeak.setField(8,t_Delta.getSlope());
-
-		String errorstr = getErrorsOneline(false, true);
+		
+		String arduinoStatus = "Mode: " + (String)mode + ". ";
+		arduinoStatus += getErrorsOneline(false, true);
 
 		// Only update status on change
-		if (errorstr != errorstr_last) {
-			if (errorstr.length() < 255) ThingSpeak.setStatus(errorstr);
+		if (arduinoStatus != errorstr_last) {
+			if (arduinoStatus.length() < 255) ThingSpeak.setStatus(arduinoStatus);
 			else ThingSpeak.setStatus("Status update failed, error string too long");
-			errorstr_last = errorstr;
+			errorstr_last = arduinoStatus;
+			// static unsigned long 
 		}
 		
 		int status = ThingSpeak.writeFields(CHANNEL_ID,CHANNEL_API_KEY);
@@ -637,35 +643,42 @@ void loop() {
 		createError(ERR_RTC);
 	} else clearError(ERR_RTC);
 
-	static unsigned long loop_timer_1s;
+	// static unsigned long loop_timer_1s;
 	static unsigned long loop_timer_5s;
 	static unsigned long loop_timer_1min;
 	static unsigned long loop_timer_1day;
-
+	
 	// Every cycle:
 	#ifdef NEXTION
 		nexLoop(nex_listen_list);
 	#endif
 
+	// When changing mode, stop motors
+	if (mode != prevMode) { motor1.setSpeed(0); motor2.setSpeed(0); prevMode = mode; verboseDbln("Mode changed to " + String(mode)); }
+	// Turn off motors after a predifined time in manual mode
+	if (mode == MANUAL) {
+		if(motor1.isRunning && motor1.getTimeOn() > MOTOR_TIMEOUT) { motor1.setSpeed(0); verboseDbln("Motor1 timeout"); }
+		if(motor2.isRunning && motor2.getTimeOn() > MOTOR_TIMEOUT) { motor2.setSpeed(0); verboseDbln("Motor2 timeout"); }
+	}
 
 	// Once every 5 seconds
-	if((millis() - loop_timer_5s) > FIVE_SEC){
+	if((millis() - loop_timer_5s) > FIVE_SEC) {
+		loop_timer_5s = millis();	// Reset timer
+
 		readSensors();
 		heating();
 		sysValUpdate();
 		serialMonLog();	
 		telemetryLog();
-
-		loop_timer_5s = millis();		// Reset timer
 	}
 	
 	// once every minute
-	if(millis() - loop_timer_1min > ONE_MIN){
+	if(millis() - loop_timer_1min > ONE_MIN) {
+		loop_timer_1min = millis();
+
 		SD_log(date, time);
 		thingspeakLog();
 		errorPrint(getErrors());
-
-		loop_timer_1min = millis();
 	}
 
 	static int prevDay;
