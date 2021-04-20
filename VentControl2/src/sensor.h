@@ -42,8 +42,9 @@ class Sensor {
         bool checkValue(float, String);        
         bool isInRange(float,float,float);
     private:
-        int arrayLenght = 12;
-        float values[12];    
+
+        static const int arrayLenght = 30;  //12
+        float values[arrayLenght];    
 };
 
 class AnalogSensor: public Sensor {
