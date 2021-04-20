@@ -2,7 +2,7 @@
 #define SETTINGS_H
 
 // Enable features
-#define RELEASE
+#define DEVELOPMENT
 #define DEBUG
 #define VERBOSE_DB
 #define PRINT_ERRORS
@@ -21,17 +21,13 @@
 
 #define MOTOR1 12            // motor1 pin HEATED AIR
 #define MOTOR2 13			 // motor2 pin DIRECT AIR
-#define DS18B20_BUS 28       // DS18B20 digital temperature sensor
-/**
- * Use a 10k resistor between signal and 5V
-*/
 
-// #define T_OUTSIDE 52		// LM35 temp sensor0 pin	OUTSIDE TEMP
-#define T_PANEL A1   	    // LM35 temp sensor1 pin  	PANEL TEMP
-#define T_AIR A2   	        // LM35 temp sensor2 pin	HOT AIR
-#define T_LIVINGROOM A3   	// LM35 temp sensor3 pin	LIVING ROOM
-#define CURRENT A5          // Current sensor pin
-#define VOLTAGE A8          // Voltage sensor pin
+//Use a 10k resistor between signal and 5V
+#define DS18B20_BUS 28      // DS18B20 digital temperature sensor bus
+#define T_PANEL     A1   	// LM35 temp sensor1 pin  	PANEL TEMP
+#define T_AIR       A2   	// LM35 temp sensor2 pin	HOT AIR
+#define CURRENT     A5      // Current sensor pin
+#define VOLTAGE     A8      // Voltage sensor pin
 #define LightSensorPin A9   // Light sensor pin
 
 // Select which SD card reader is used:
@@ -62,22 +58,25 @@
 #define currentOffset 0
 
 #define HYSTERESIS 20           // Number of times to read value over threshold before changing motor speed
-
 #define light_max_Reading 900   // The adc value when full light MAX = 1023
-
 #define pinReference 5          // The measured value of +5V pin
-
 #define TEMP_ERR_THR 75
 
 // *****************  THINGSPEAK **********************
-#define CHANNEL_ID 1327374
-#define CHANNEL_API_KEY "SYJB15HBTE9V8CWR"
-
+#ifdef DEVELOPMENT
+    #define CHANNEL_ID 1333797
+    #define CHANNEL_API_KEY "FWUUPNPX96UG2NN9"
+#else
+    #define CHANNEL_ID 1327374
+    #define CHANNEL_API_KEY "SYJB15HBTE9V8CWR"
+#endif
 
 // *****************  MODES **********************
 #define MANUAL 0
 #define HEATING 1
 #define ADVANCED 2
+
+#define MOTOR_TIMEOUT 60    // In manual mode, how long before motor stops (minutes)
 
 // ****************  LOOP FUNCTION *********************
 #define ONE_SEC 1000
