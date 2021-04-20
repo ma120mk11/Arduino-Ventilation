@@ -58,6 +58,7 @@ float Sensor::getSlope() {
 	C = n * C;
 	D = D * D;
 	slope = (A - B) / (C - D);
+	
 	return (float)slope;
 }
 
