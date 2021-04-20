@@ -7,6 +7,7 @@ struct Error {
     int count = 0;
 };
 
+// All errors are stored in an array, with the errortype as index
 Error setError[30];
 
 int numOfCreatedErrors = 0;
@@ -40,7 +41,7 @@ String getErrorsOneline(bool verbose = true, bool ignoreThingspeak = false) {
     String text = "";
     for(int i = 0; i < 30; i++) {
         if (setError[i].active) {
-            // 
+            // Option to ignore thingspeak error
             if (ignoreThingspeak && i == ERR_THINKSPEAK) continue;
 
             count++;
@@ -59,7 +60,7 @@ String getErrorsOneline(bool verbose = true, bool ignoreThingspeak = false) {
 String getErrorTypeString(int type) {
     String text = "";
     switch (type){
-        case 1:
+        case ERR_VOLTAGE:
             text = "voltage";
             break;
         case 2:
