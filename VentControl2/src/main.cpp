@@ -26,13 +26,19 @@ CurrentSensor current(CURRENT);
 VoltageSensor voltage(VOLTAGE);
 Sensor t_Delta;						
 
-#ifndef DEVELOPMENT
-const char *ssid = "AndroidAP";
-const char *pass = "arduinomega";
-#else
+#ifdef DEVELOPMENT
 const char *ssid = "HUAWEIP20Pro";
 const char *pass = "3665d14cd73b";
+unsigned long talkBackID = '42423';
+const char *talkBackKey = "5Z4Z21O53WT5DOUK";
+#else
+const char *ssid = "AndroidAP";
+const char *pass = "arduinomega";
 #endif
+
+
+
+
 
 ESP8266Client client;					// WIFI client
 DS1302 rtc(RTC_RST, RTC_SCL, RTC_IO);	// Initialize rtc object
@@ -279,6 +285,57 @@ void thingspeakLog() {
 		verboseDbln("Thingspeak upload took " + (String)((millis()-start)/1000) + "seconds");
 
 	#endif
+}
+
+// General function to POST to ThingSpeak
+int httpPOST(String uri, String postMessage, String &response){
+
+  bool connectSuccess = false;
+  connectSuccess = client.connect("api.thingspeak.com",80);
+
+  if(!connectSuccess){
+      return -301;   
+  }
+  
+  postMessage += "&headers=false";
+  
+  String Headers =  String("POST ") + uri + String(" HTTP/1.1\r\n") +
+                    String("Host: api.thingspeak.com\r\n") +
+                    String("Content-Type: application/x-www-form-urlencoded\r\n") +
+                    String("Connection: close\r\n") +
+                    String("Content-Length: ") + String(postMessage.length()) +
+                    String("\r\n\r\n");
+
+  client.print(Headers);
+  client.print(postMessage);
+
+  long startWaitForResponseAt = millis();
+  while(client.available() == 0 && millis() - startWaitForResponseAt < 5000){
+      delay(100);
+  }
+
+  if(client.available() == 0){       
+    return -304; // Didn't get server response in time
+  }
+
+  if(!client.find(const_cast<char *>("HTTP/1.1"))){
+      return -303; // Couldn't parse response (didn't find HTTP/1.1)
+  }
+  
+  int status = client.parseInt();
+  if(status != 200){
+    return status;
+  }
+
+  if(!client.find(const_cast<char *>("\n\r\n"))){
+    return -303;
+  }
+
+  String tempString = String(client.readString());
+  response = tempString;
+  
+  return status;
+    
 }
 
 #ifdef NEXTION
@@ -639,9 +696,8 @@ void loop() {
 	DateTime now = rtc.now();
 	String date = String(now.day()) + "." + String(now.month()) + "." + String(now.year());
 	String time = String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second());
-	if (date == "165.165.2165") {
-		createError(ERR_RTC);
-	} else clearError(ERR_RTC);
+	if (date == "165.165.2165") { createError(ERR_RTC); } 
+	else clearError(ERR_RTC);
 
 	// static unsigned long loop_timer_1s;
 	static unsigned long loop_timer_5s;
@@ -665,19 +721,64 @@ void loop() {
 	if((millis() - loop_timer_5s) > FIVE_SEC) {
 		loop_timer_5s = millis();	// Reset timer
 
+		
+
+
+
 		readSensors();
-		heating();
-		sysValUpdate();
-		serialMonLog();	
-		telemetryLog();
+		// heating();
+		// sysValUpdate();
+		// serialMonLog();	
+		// telemetryLog();
 	}
 	
 	// once every minute
 	if(millis() - loop_timer_1min > ONE_MIN) {
 		loop_timer_1min = millis();
 
-		SD_log(date, time);
-		thingspeakLog();
+		// //******* Thingspeak TalkBack **********
+		// // Create the TalkBack URI
+
+		// String tbURI = String("/talkbacks/") + String(talkBackID) + String("/commands/execute");
+		
+		// // Create the message body for the POST out of the values
+		// String postMessage =  String("api_key=") + String(talkBackKey);                      
+							
+		// // Make a string for any commands in the queue
+		// String newCommand = String();
+
+		// // Make the POST to ThingSpeak
+		// int x = httpPOST(tbURI, postMessage, newCommand);
+		// client.stop();
+		
+		// // Check the result
+		// if(x == 200){
+		// 	Serial.println("checking queue..."); 
+		// 	// check for a command returned from TalkBack
+		// 	if(newCommand.length() != 0){
+
+		// 		Serial.print("  Latest command from queue: ");
+		// 		Serial.println(newCommand);
+				
+		// 		if(newCommand == "TURN_ON"){
+		// 			digitalWrite(LED_BUILTIN, HIGH);  
+		// 		}
+
+		// 		if(newCommand == "TURN_OFF"){
+		// 			digitalWrite(LED_BUILTIN, LOW);
+		// 		}
+		// 	}
+		// 	else{
+		// 		Serial.println("  Nothing new.");  
+		// 	}
+			
+		// }
+		// else{
+		// 	Serial.println("Problem checking queue. HTTP error code " + String(x));
+		// }
+		
+		// SD_log(date, time);
+		// thingspeakLog();
 		errorPrint(getErrors());
 	}
 
