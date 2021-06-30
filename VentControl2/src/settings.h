@@ -6,11 +6,17 @@
 #define DEBUG
 #define VERBOSE_DB
 #define PRINT_ERRORS
-// #define NEXTION
+#define NEXTION
+// #define SD_CARD
 #define THINGSPEAK 
 #define EEPROM_STORE 
-//#define TELEMETRY 
+// #define TELEMETRY 
 // #define OFFLINE_TEST
+
+// Select which SD card reader is used:
+#define CYTRON_SD
+// #define EXTERNAL_SD
+
 
 //************************    PINS    *********************************
 // USE TX2 for Nextion display communication
@@ -30,9 +36,7 @@
 #define VOLTAGE     A8      // Voltage sensor pin
 #define LightSensorPin A9   // Light sensor pin
 
-// Select which SD card reader is used:
-#define CYTRON_SD
-// #define EXTERNAL_SD
+
 
 #ifdef EXTERNAL_SD
     #define chipSelect 53		// pin for SD card chip select (see SD_card.h)

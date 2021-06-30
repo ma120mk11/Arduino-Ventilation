@@ -10,6 +10,7 @@ String errorHeaders = "date,time,errorType,msg,errortypecount";
 String reportHeaders = "date,ErrorsCreated,MotorOnTime";
 
 void SD_Card_INIT() {
+	#ifdef SD_CARD
 	DBPRINT("Initializing SD card...");
 
 	// see if the card is present and can be initialized:
@@ -80,10 +81,12 @@ void SD_Card_INIT() {
 		nextion_update("data.sd_status.val=", 0);			// Update sd status
 	}
 	dayReport.close();
+	#endif
 }
 
 
 void SD_log(String date = "", String time = "") {
+	#ifdef SD_CARD
 	if (isUnmounted) verboseDbln("SD: Unmounted");
 	
 	// Don't try to open and write to the file if card was unmounted
@@ -129,9 +132,11 @@ void SD_log(String date = "", String time = "") {
 		}
 		dataFile.close();
 	}
+	#endif
 }
 
 void SD_errorlog(int ErrorType, String msg, int count, String date = "", String time = "") {
+	#ifdef SD_CARD
 	// Don't try to open and write to the file if card was unmounted
 	if(isUnmounted==0) {	
 		
@@ -158,10 +163,12 @@ void SD_errorlog(int ErrorType, String msg, int count, String date = "", String 
 		} 
 		dataFile.close();
 	}
+	#endif
 }
 
 
-void SD_DayReport(String date, int mtrOnTime, int errorcount){
+void SD_DayReport(String date, int mtrOnTime, int errorcount) {
+	#ifdef SD_CARD
 	if (!isUnmounted){
 		String dataString = date 	+ ",";
 		dataString += errorcount	+ ",";
@@ -177,14 +184,17 @@ void SD_DayReport(String date, int mtrOnTime, int errorcount){
 		}
 		dataFile.close();
 	}
+	#endif
 }
 
 
 
 void SD_unmount() {
+	#ifdef SD_CARD
 	SD.end();
 	isUnmounted = true;		// Notify that the card was unmounted
 	nextion_update("sd_card_sett.sdStatus.txt=", "Unmounted");
 	nextion_update("data.sd_status.val=", 0);		// Update sd status
 	DBPRINT_LN("Unmounted SD card");
+	#endif
 }
