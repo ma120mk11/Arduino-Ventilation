@@ -628,8 +628,8 @@ void setup() {
 	SD_Card_INIT();
 	readEEPROM();
 	RtcInit();
-	pinMode(MOTOR1, OUTPUT);           	// set motor as output
-	pinMode(MOTOR2, OUTPUT);           	// set motor as output
+	pinMode(MOTOR1, OUTPUT); 
+	pinMode(MOTOR2, OUTPUT);           	
 	init_sensors();
 	WifiInit();
 	
@@ -722,15 +722,11 @@ void loop() {
 	if((millis() - loop_timer_5s) > FIVE_SEC) {
 		loop_timer_5s = millis();	// Reset timer
 
-		
-
-
-
 		readSensors();
-		// heating();
-		// sysValUpdate();
-		// serialMonLog();	
-		// telemetryLog();
+		heating();
+		sysValUpdate();
+		serialMonLog();	
+		telemetryLog();
 	}
 	
 	// once every minute
@@ -778,8 +774,8 @@ void loop() {
 		// 	Serial.println("Problem checking queue. HTTP error code " + String(x));
 		// }
 		
-		// SD_log(date, time);
-		// thingspeakLog();
+		SD_log(date, time);
+		thingspeakLog();
 		errorPrint(getErrors());
 	}
 
