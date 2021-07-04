@@ -24,6 +24,7 @@ void Motor::setSpeed(int s)
 	if(s > 0 && !isRunning) { startMillis = millis(); }
 	if(s == 0 && isRunning) { timeOn += (millis() - startMillis) / 60000;}
 	
+
 	// Update max
 	if(s > max) max = s;
 
