@@ -711,10 +711,11 @@ void loop() {
 
 	// When changing mode, stop motors
 	if (mode != prevMode) { motor1.setSpeed(0); motor2.setSpeed(0); prevMode = mode; verboseDbln("Mode changed to " + String(mode)); }
+	
 	// Turn off motors after a predifined time in manual mode
 	if (mode == MANUAL) {
-		if(motor1.isRunning && motor1.getTimeOn() > MOTOR_TIMEOUT) { motor1.setSpeed(0); verboseDbln("Motor1 timeout"); }
-		if(motor2.isRunning && motor2.getTimeOn() > MOTOR_TIMEOUT) { motor2.setSpeed(0); verboseDbln("Motor2 timeout"); }
+		motor1.timeOnWatcher();
+		motor2.timeOnWatcher();
 	}
 
 	// Once every 5 seconds

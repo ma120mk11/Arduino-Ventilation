@@ -20,10 +20,9 @@ void Motor::setSpeed(int s)
 		else createError(ERR_MOTOR);
 		return;
 	}
-	// Update motor start time
-	if(s > 0 && !isRunning) { startMillis = millis(); }
-	if(s == 0 && isRunning) { timeOn += (millis() - startMillis) / 60000;}
-	
+	// Set motor start-time. Speed change resets motor on-time.
+	if(s != speed) { startMillis = millis(); }
+
 
 	// Update max
 	if(s > max) max = s;
@@ -172,10 +171,12 @@ void Motor::setSpeed(int s)
 
 int Motor::getTimeOn() {
 	// If motor is running when the metod is called
-	if (isRunning) timeOn += (millis() - startMillis) / 60000;
-	return timeOn;
+	if (isRunning) return (millis() - startMillis) / 60000;
+	else return 0;
 }
 
-void Motor:: resetTimeOn(){ 
-	timeOn = 0;
+void Motor::timeOnWatcher() {
+	if(isRunning && motor1.getTimeOn() > MOTOR_TIMEOUT) { 
+		setSpeed(0); verboseDbln("Motor("+(String)output_pin+") timeout"); 
+	}
 }

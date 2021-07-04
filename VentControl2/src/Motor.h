@@ -15,7 +15,7 @@ class Motor {
 		int output_pin = 9;
 		int max = 0;
         unsigned long startMillis;
-        unsigned long timeOn;
+        // unsigned long timeOn;       // How long (minutes) the motor has been running since last speedchange
         float noCurrentThr = 1.0;   //
 
 
@@ -35,13 +35,12 @@ class Motor {
         int getSpeed();                 // Returns the current motor speed (int)
         void setPin(int pin);
         int getMax();
-
+        void timeOnWatcher();
         /**
          * TODO: millis overflow logic
-         * @return motor on time in minutes
+         * @return motor on time in minutes since last speed change
          */
         int getTimeOn();
-        void resetTimeOn();
         bool isRunning = 0;
 };
 
