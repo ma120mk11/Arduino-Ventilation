@@ -27,7 +27,7 @@ class Motor {
         static const int s5 = 255;				// motor PWM value at setting 5
 
     public:
-        Motor(int pin);         // Constructor
+        explicit Motor(int pin);         // Constructor
         /**
          * @param speed Range 0 - 5
          */
